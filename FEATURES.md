@@ -6,7 +6,8 @@ phase. Requirement IDs (`F1.2`) exist so commits, tests, and reviews can referen
 them.
 
 Decisions locked with the owner (2026-07-17): card-shaped tiles for the list;
-add-card as a center **+** action in the glass navbar; PIN mandatory at onboarding;
+add-card as a **detached circular glass + button beside the navbar** (the capsule
+holds tabs only, so it scales to future tabs); PIN mandatory at onboarding;
 theme = system default with manual override.
 
 ---
@@ -130,7 +131,7 @@ data; a flipped ciphertext bit fails loudly in tests and in the UI per F3.3.
 - F4.3 Search across card titles and field labels (never rendering secret values in
   results).
 - F4.4 Filter chips by type: Payment / Identity / Travel / Loyalty / Other.
-- F4.8 Empty state: friendly "add your first card" pointing at the navbar +.
+- F4.8 Empty state: friendly "add your first card" pointing at the + button.
 
 **Functional requirements — detail**
 - F4.5 Field rows per template; masked fields render as •••• until tapped
@@ -172,22 +173,25 @@ values never appear in the app switcher (with F6.2).
 **Purpose:** the app's visual identity; everything reachable in one thumb reach.
 
 **Functional requirements**
-- F5.1 Floating glass bar: **Cards | + | Settings**. The center + is an action
-  (opens add-card), not a tab — the selection pill only travels between the two
-  tabs and skips the +.
-- F5.2 The + renders as a tinted glass button (accent through refraction, per the
-  vendored component's technique).
+- F5.1 Floating glass capsule holds **tabs only** (Cards, Settings today); the
+  selection pill travels between contiguous tab slots. Adding future tabs means
+  adding slots — the capsule layout never reserves space for actions.
+- F5.2 **Add-card is a detached circular glass + button** sitting beside the
+  capsule (same row, same backdrop, accent-tinted glass per the tinted-button
+  recipe). It is an action, not a tab: it never participates in pill travel.
 - F5.3 Tab switch keeps per-tab state (list scroll position survives).
 - F5.4 Glass renders over scrolling list content (safe: tiles hold no secrets —
   F4.1); the navbar is hidden on lock and onboarding screens.
 - F5.5 All navbar elements have semantics: tab role + labels; + labeled "Add card";
   48dp minimum targets.
 
-**Acceptance criteria:** pill drag-to-select still works with the center + in
-place; + opens the add flow from both tabs; TalkBack announces all three elements
-correctly.
+**Acceptance criteria:** pill drag-to-select works unchanged in the capsule; the
++ button opens the add flow from both tabs; TalkBack announces both tabs and the
+"Add card" button correctly; layout still fits with a hypothetical third tab
+(design-time check, not shipped).
 
-**Phase:** 0 (two-tab shell, done) → 3 (center + added with the add-card flow).
+**Phase:** 0 (two-tab shell, done) → 3 (detached + button added with the
+add-card flow).
 
 ---
 
