@@ -1,0 +1,16 @@
+Card Wallet
+Copyright 2026 PerspicaciousGuy
+
+This product includes software developed by third parties:
+
+AndroidLiquidGlass (https://github.com/Kyant0/AndroidLiquidGlass)
+Copyright Kyant
+Licensed under the Apache License, Version 2.0.
+
+- The Maven artifacts io.github.kyant0:backdrop and io.github.kyant0:shapes are
+  consumed as dependencies.
+- The components in app/src/main/java/com/cardwallet/ui/glass/
+  (LiquidBottomTabs, DampedDragAnimation, InteractiveHighlight,
+  DragGestureInspector) are adapted from the AndroidLiquidGlass catalog
+  application, with modifications (package relocation, theme-token color
+  injection, Android-only time source).
