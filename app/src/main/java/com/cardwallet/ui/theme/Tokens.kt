@@ -19,6 +19,36 @@ data class Spacing(
 )
 
 /**
+ * The color a user assigns to a card (F4.11). Stored as this stable token key on
+ * the card record — never a raw hex — so the palette can change in one place.
+ * Order is CVD-validated; treat it as fixed.
+ */
+enum class CardColorToken {
+    BLUE,
+    GREEN,
+    ROSE,
+    AMBER,
+    AQUA,
+    ORANGE,
+    VIOLET,
+    RED,
+}
+
+/** Resolves a [CardColorToken] to its tile color. Theme-independent for now
+ *  (vivid tiles read on both grounds); becomes theme-aware here if needed. */
+fun CardColorToken.color(): Color =
+    when (this) {
+        CardColorToken.BLUE -> CardBlue
+        CardColorToken.GREEN -> CardGreen
+        CardColorToken.ROSE -> CardRose
+        CardColorToken.AMBER -> CardAmber
+        CardColorToken.AQUA -> CardAqua
+        CardColorToken.ORANGE -> CardOrange
+        CardColorToken.VIOLET -> CardViolet
+        CardColorToken.RED -> CardRed
+    }
+
+/**
  * Wallet-specific design tokens beyond Material's roles (AGENTS.md §6).
  * Provided via [LocalWalletTokens]; read through [WalletTheme.tokens].
  */
@@ -34,7 +64,7 @@ data class WalletTokens(
 val LightWalletTokens =
     WalletTokens(
         spacing = Spacing(),
-        glassAccent = GlassAccentLight,
+        glassAccent = Honey,
         glassContainer = GlassContainerLight,
         backdropTop = BackdropTopLight,
         backdropBottom = BackdropBottomLight,
@@ -43,7 +73,7 @@ val LightWalletTokens =
 val DarkWalletTokens =
     WalletTokens(
         spacing = Spacing(),
-        glassAccent = GlassAccentDark,
+        glassAccent = HoneyDark,
         glassContainer = GlassContainerDark,
         backdropTop = BackdropTopDark,
         backdropBottom = BackdropBottomDark,

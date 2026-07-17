@@ -5,66 +5,87 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
 // The only file in the app where raw color values are legal (AGENTS.md §6).
+// Palette locked 2026-07-17: warm-neutral chrome, honey accent, and 8 card
+// tokens validated for colorblind separation + lightness (dataviz validator).
 
-val Indigo600 = Color(0xFF4F46E5)
-val Indigo400 = Color(0xFF818CF8)
-val Indigo100 = Color(0xFFE0E7FF)
-val Violet500 = Color(0xFF8B5CF6)
-val Slate950 = Color(0xFF0B0F1A)
-val Slate900 = Color(0xFF111827)
-val Slate800 = Color(0xFF1F2937)
-val Slate200 = Color(0xFFE5E7EB)
-val Slate100 = Color(0xFFF3F4F6)
-val Slate50 = Color(0xFFF9FAFB)
-val Red500 = Color(0xFFEF4444)
-val Red300 = Color(0xFFFCA5A5)
+// --- Chrome: warm neutrals biased toward the honey accent ---
+val Field = Color(0xFFFAF9F7)
+val Surface = Color(0xFFF1EFEA)
+val Surface2 = Color(0xFFE7E4DC)
+val Hairline = Color(0xFFE0DCD3)
+val InkMute = Color(0xFF8B857C)
+val InkSoft = Color(0xFF57534E)
+val Ink = Color(0xFF1C1917)
 
-/** Accent used by the liquid-glass navbar's hidden reveal layer. */
-val GlassAccentLight = Color(0xFF0066FF)
-val GlassAccentDark = Color(0xFF3D8BFF)
+val FieldDark = Color(0xFF14110E)
+val SurfaceDark = Color(0xFF1F1B16)
+val Surface2Dark = Color(0xFF2A251E)
+val HairlineDark = Color(0xFF322C24)
+val InkMuteDark = Color(0xFF8B857C)
+val InkSoftDark = Color(0xFFC3BDB2)
+val InkDark = Color(0xFFF5F3EF)
+
+// --- Accent: honey. The one chrome color (pill reveal, + button, selection) ---
+val Honey = Color(0xFFE0A020)
+val HoneyDeep = Color(0xFFB87D12)
+val HoneyDark = Color(0xFFF0B840)
+val OnHoney = Color(0xFF241A00)
+
+// --- Card tokens: the app's real color, one per card (F4.11) ---
+// CVD-validated in this order; do not reorder without re-running the validator.
+val CardBlue = Color(0xFF2A78D6)
+val CardGreen = Color(0xFF008300)
+val CardRose = Color(0xFFE87BA4)
+val CardAmber = Color(0xFFEDA100)
+val CardAqua = Color(0xFF1BAF7A)
+val CardOrange = Color(0xFFEB6834)
+val CardViolet = Color(0xFF4A3AA7)
+val CardRed = Color(0xFFE34948)
+
+// Glass backdrop gradient — the quiet field the navbar refracts.
+val BackdropTopLight = Field
+val BackdropBottomLight = Surface
+val BackdropTopDark = SurfaceDark
+val BackdropBottomDark = FieldDark
 
 /** Readability scrim the glass bar draws over its refracted backdrop. */
-val GlassContainerLight = Color(0xFFFAFAFA).copy(alpha = 0.4f)
+val GlassContainerLight = Field.copy(alpha = 0.4f)
 val GlassContainerDark = Color(0xFF121212).copy(alpha = 0.4f)
-
-/** Home backdrop gradient — gives the glass something to refract. */
-val BackdropTopLight = Indigo100
-val BackdropBottomLight = Slate50
-val BackdropTopDark = Slate900
-val BackdropBottomDark = Slate950
 
 val LightColorScheme =
     lightColorScheme(
-        primary = Indigo600,
-        onPrimary = Color.White,
-        primaryContainer = Indigo100,
-        onPrimaryContainer = Slate900,
-        secondary = Violet500,
-        onSecondary = Color.White,
-        background = Slate50,
-        onBackground = Slate900,
-        surface = Slate100,
-        onSurface = Slate900,
-        surfaceVariant = Slate200,
-        onSurfaceVariant = Slate800,
-        error = Red500,
+        primary = Honey,
+        onPrimary = OnHoney,
+        primaryContainer = Surface2,
+        onPrimaryContainer = HoneyDeep,
+        secondary = InkSoft,
+        onSecondary = Field,
+        background = Field,
+        onBackground = Ink,
+        surface = Surface,
+        onSurface = Ink,
+        surfaceVariant = Surface2,
+        onSurfaceVariant = InkSoft,
+        outline = Hairline,
+        error = CardRed,
         onError = Color.White,
     )
 
 val DarkColorScheme =
     darkColorScheme(
-        primary = Indigo400,
-        onPrimary = Slate950,
-        primaryContainer = Slate800,
-        onPrimaryContainer = Indigo100,
-        secondary = Violet500,
-        onSecondary = Color.White,
-        background = Slate950,
-        onBackground = Slate100,
-        surface = Slate900,
-        onSurface = Slate100,
-        surfaceVariant = Slate800,
-        onSurfaceVariant = Slate200,
-        error = Red300,
-        onError = Slate950,
+        primary = HoneyDark,
+        onPrimary = OnHoney,
+        primaryContainer = Surface2Dark,
+        onPrimaryContainer = HoneyDark,
+        secondary = InkSoftDark,
+        onSecondary = FieldDark,
+        background = FieldDark,
+        onBackground = InkDark,
+        surface = SurfaceDark,
+        onSurface = InkDark,
+        surfaceVariant = Surface2Dark,
+        onSurfaceVariant = InkSoftDark,
+        outline = HairlineDark,
+        error = CardRed,
+        onError = Color.White,
     )
