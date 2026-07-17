@@ -1,0 +1,28 @@
+# Private agent working files — never commit (AGENTS.md privacy rule)
+AGENTS.md
+agents-guidelines/
+HANDOFF.md
+
+# Machine-local configuration and secrets
+local.properties
+.env*
+
+# Build outputs and caches
+.gradle/
+.kotlin/
+build/
+app/build/
+*.apk
+*.aab
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Demo-era leftovers kept out of history
+image.png
+
+# OS noise
+.DS_Store
+Thumbs.db

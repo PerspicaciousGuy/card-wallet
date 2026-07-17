@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Bare host theme for a pure-Compose activity. Edge-to-edge + transparent
+         system bars are configured in code via enableEdgeToEdge(); real theming
+         lives in ui/theme (Compose). -->
+    <style name="Theme.CardWallet" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>

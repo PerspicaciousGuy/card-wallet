@@ -1,0 +1,22 @@
+# Card Wallet detekt overrides. buildUponDefaultConfig = true — only deviations
+# from the detekt defaults live here.
+
+style:
+  MagicNumber:
+    # Design values are allowed exactly where the design system lives (AGENTS.md §6);
+    # composables consume theme tokens, but layout fractions/animation literals in
+    # annotated composables are design values too.
+    excludes: ["**/ui/theme/**", "**/ui/glass/**"]
+    ignoreAnnotated: ["Composable"]
+
+complexity:
+  LongMethod:
+    # Composable screen functions legitimately run long; flag only extremes.
+    threshold: 120
+  LongParameterList:
+    ignoreAnnotated: ["Composable"]
+
+naming:
+  FunctionNaming:
+    # Composables are UpperCamelCase by convention (compose-rules.md §3).
+    ignoreAnnotated: ["Composable"]

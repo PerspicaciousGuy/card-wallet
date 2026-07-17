@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Card Wallet</string>
+
+    <string name="tab_cards">Cards</string>
+    <string name="tab_settings">Settings</string>
+
+    <string name="cards_title">Your cards</string>
+    <string name="cards_placeholder">Your encrypted vault will appear here. Card list arrives in Phase 3.</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_placeholder">Auto-lock, PIN and backup controls arrive in Phases 4–5.</string>
+
+    <string name="lock_title">Card Wallet is locked</string>
+    <string name="lock_placeholder">Biometric and PIN unlock arrive in Phase 1.</string>
+</resources>
