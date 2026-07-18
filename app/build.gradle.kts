@@ -81,4 +81,8 @@ dependencies {
     // Kyant liquid-glass backdrop + G2-continuous shapes (Capsule)
     implementation(libs.kyant.backdrop)
     implementation(libs.kyant.shapes)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
 }

@@ -11,5 +11,28 @@
     <string name="settings_placeholder">Auto-lock, PIN and backup controls arrive in Phases 4–5.</string>
 
     <string name="lock_title">Card Wallet is locked</string>
-    <string name="lock_placeholder">Biometric and PIN unlock arrive in Phase 1.</string>
+
+    <string name="lock_secure_missing_title">Set up a screen lock first</string>
+    <string name="lock_secure_missing_body">Your vault key lives in this device\'s secure hardware, which requires a screen lock (PIN, pattern or password). Set one up, then come back.</string>
+    <string name="lock_open_settings">Open security settings</string>
+    <string name="lock_recheck">I\'ve set one up</string>
+
+    <string name="lock_create_title">Create your wallet PIN</string>
+    <string name="lock_confirm_title">Confirm your PIN</string>
+    <string name="lock_create_subtitle">6 digits. This unlocks your vault when biometrics aren\'t available.</string>
+    <string name="lock_pins_dont_match">Those PINs didn\'t match. Start again.</string>
+
+    <string name="lock_seal_prompt_title">Secure your vault</string>
+    <string name="lock_seal_prompt_subtitle">Confirm your screen lock once to finish creating your encrypted vault.</string>
+    <string name="lock_retry_auth">Try again</string>
+    <string name="lock_auth_canceled">Confirmation was canceled.</string>
+
+    <string name="lock_unlock_prompt_title">Unlock Card Wallet</string>
+    <string name="lock_unlock_prompt_subtitle">Use your fingerprint, face or screen lock</string>
+    <string name="lock_use_biometric">Unlock with biometrics</string>
+    <string name="lock_wrong_pin">That PIN isn\'t right.</string>
+    <string name="lock_backoff">Too many attempts. Try again in %1$d seconds.</string>
+    <string name="lock_biometric_invalidated">Biometric setup changed on this device, so biometric unlock is off. Use your PIN.</string>
+    <string name="lock_vault_corrupt">Your vault data is unreadable. Restore from a backup when backups arrive, or erase and start over.</string>
+    <string name="lock_backspace">Delete last digit</string>
 </resources>

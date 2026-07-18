@@ -65,25 +65,39 @@ The core of the app. Built and verified first (Phase 1), on dummy data, before a
 ### Key hierarchy
 
 ```
-Vault Master Key (VMK)            AES-256 generated INSIDE AndroidKeyStore at first launch
-  ├─ non-exportable, hardware-backed (StrongBox when available, TEE otherwise)
-  ├─ setUserAuthenticationRequired(true) — OS gates every use behind
-  │  biometric (BIOMETRIC_STRONG) or device credential
-  └─ encrypts/decrypts every card record (AES-256-GCM, fresh 96-bit nonce
-     per write, via BiometricPrompt.CryptoObject-authorized Cipher)
+Data Encryption Key (DEK)         random AES-256, generated at vault creation
+  ├─ encrypts every card record (AES-256-GCM, fresh 96-bit nonce per write)
+  ├─ exists in plain form ONLY in memory while the app is unlocked;
+  │  zeroed on lock (same exposure class as the decrypted session cache)
+  └─ stored at rest ONLY as the two wraps below
 
-App PIN (6 digit, user-set)       fallback unlock when biometrics unavailable/fail
-  └─ verifier stored as PBKDF2 hash (high iteration count) in app-private
-     EncryptedSharedPreferences-equivalent (Keystore-wrapped prefs);
-     never the PIN itself. Successful PIN verify authorizes the same
-     device-credential Keystore path — the PIN never derives the vault key.
+Wrap A — hardware wrap            DEK encrypted by the VMK
+  └─ VMK: AES-256 generated INSIDE AndroidKeyStore; non-exportable,
+     hardware-backed (StrongBox when available, TEE otherwise);
+     auth-per-use — every unwrap authorized via BiometricPrompt.CryptoObject
+     (BIOMETRIC_STRONG | DEVICE_CREDENTIAL system sheet)
+
+Wrap B — PIN wrap (double layer)  the app-PIN fallback (owner decision 2026-07-17)
+  ├─ inner: DEK encrypted with KEK = PBKDF2-HMAC-SHA256(app PIN, per-install
+  │  salt, 600k iterations). Wrong PIN ⇒ GCM tag failure — the wrap IS the
+  │  verifier; no separate PIN hash is stored.
+  └─ outer: that blob encrypted again by a second Keystore key (no user-auth
+     requirement, but device-bound and non-extractable). Offline brute force
+     against exfiltrated storage is therefore impossible — PIN guessing must
+     run on-device through the Keystore, where app backoff applies.
 
 Export passphrase (user-chosen, per export)
   └─ PBKDF2-derived key encrypts the backup file; never stored anywhere.
-     (Export path cannot use the Keystore VMK — backups must be portable.)
+     (Export path cannot use Keystore keys — backups must be portable.)
 ```
 
-Upgrade over the RN plan: the VMK is no longer "random bytes stored in a secure store" — it is a Keystore key whose raw material is **never readable by app code at all**. Decision 6 re-argued below.
+Consequences of the dual-wrap design (vs. the earlier "PIN never derives a key"
+stance, revised by owner decision): the residual weakness is on-device PIN
+guessing bounded by app-level backoff (accepted); the gain is self-recovery —
+biometric key invalidation (enrollment change, lock-screen reset) leaves Wrap B
+intact, so PIN unlock recovers the vault and Wrap A is simply re-created. The
+VMK's raw material remains **never readable by app code at all**. Decision 6
+re-argued below.
 
 ### Rules (enforced throughout, from `security-rules.md` + AGENTS.md §7)
 

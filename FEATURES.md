@@ -72,16 +72,18 @@ time the app is cold-started or left idle.
   exponential backoff with a visible countdown timer; input disabled during
   backoff.
 - F2.4 Locking wipes the in-memory decrypted cache (repository session cache).
-- F2.5 Biometric-enrollment change invalidates the Keystore key → the app detects
-  `KeyPermanentlyInvalidatedException` and routes to a guided recovery flow
-  (restore from backup / erase and start over) — never a crash or silent failure.
+- F2.5 Biometric-enrollment change invalidates the hardware wrap → the app
+  detects `KeyPermanentlyInvalidatedException`, tells the user to unlock with
+  PIN (the PIN wrap survives invalidation), and disables biometric unlock until
+  it is re-enabled from Settings — never a crash or silent failure.
 
 **Security requirements**
-- F2.6 The lock gate is enforced centrally at the navigation root — no per-screen
+- F2.6 The lock gate is enforced centrally at the app root — no per-screen
   checks (compose-rules §7).
-- F2.7 Unlock authorizes the Keystore-gated cipher (BiometricPrompt.CryptoObject);
-  the PIN path authorizes the same key via device-credential — the PIN never
-  derives an encryption key.
+- F2.7 Two unlock paths to the same DEK (plan §3): biometric/device-credential
+  authorizes the Keystore-gated hardware wrap via BiometricPrompt.CryptoObject;
+  the app PIN opens the double-layer PIN wrap (PBKDF2 inner + device-bound
+  Keystore outer, so PIN guessing cannot happen off-device).
 
 **UI states:** locked (default), authenticating, backoff countdown, key-invalidated
 recovery.

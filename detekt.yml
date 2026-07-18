@@ -15,6 +15,10 @@ complexity:
     threshold: 120
   LongParameterList:
     ignoreAnnotated: ["Composable"]
+  TooManyFunctions:
+    # ViewModels are event-handler surfaces by design (compose-rules §5):
+    # one public function per UI event is the pattern, not a smell.
+    ignoreAnnotated: ["HiltViewModel"]
 
 naming:
   FunctionNaming:
