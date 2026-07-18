@@ -26,3 +26,6 @@ image.png
 # OS noise
 .DS_Store
 Thumbs.db
+
+# Emulator droppings
+bugreport-*.zip
