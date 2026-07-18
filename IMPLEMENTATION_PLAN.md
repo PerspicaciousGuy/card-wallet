@@ -39,7 +39,7 @@ Per `agents-guidelines/languages/kotlin-rules.md` + `agents-guidelines/mobile/co
 | Layer | Choice | Rationale |
 |---|---|---|
 | Language | Kotlin 2.x (K2), Gradle Kotlin DSL + version catalog | `kotlin-rules.md` §1 mandate; already how this repo is set up (AGP 9.3 / Gradle 9.6 / Kotlin 2.4) |
-| UI | Jetpack Compose, Material 3, edge-to-edge | `compose-rules.md` mandate; the glass navbar is Compose-native |
+| UI | Jetpack Compose, **Material 3 (JetBrains CMP artifacts)**, edge-to-edge | `compose-rules.md` mandate; the glass navbar is Compose-native. Material 3 is **scaffolding only** (color scheme, type, `Text`/`Button`/dialogs) — the app's identity is the liquid glass + our design tokens. **Not Material 3 Expressive** (Decision 10): it's an AndroidX-only API surface not mirrored in the CMP artifacts the glass library rides on, and its headline features — spring motion, shape morphs, expressive nav/FAB — are things we already own via the glass and our tokens. Expressive character, where wanted, is hand-crafted in our design system, not imported |
 | Liquid glass | `io.github.kyant0:backdrop` 2.0.0 + `shapes` 1.2.0 + ported `glass/` components | Already integrated and verified on device |
 | Architecture | UDF: ViewModel → `StateFlow<UiState>` → stateless screens; events up as lambdas | `compose-rules.md` §1, §4–5 |
 | DI | Hilt (`hiltViewModel()` at screen level, constructor injection everywhere) | `kotlin-rules.md` §13; matches the examples the Compose rules assume |
@@ -283,7 +283,7 @@ Each phase ends with the app building, running, and its acceptance checks passin
 
 Per `kotlin-rules.md` §14, `compose-rules.md` §13, and `testing-rules.md` (read before writing tests):
 
-- **Unit:** crypto (round-trip, tamper, nonce uniqueness), KeystoreManager (instrumented — Keystore has no JVM fake worth trusting), PinVerifier (backoff math), repository (in-memory Room), session holder, serialization schemas. `runTest` + injected `TestDispatcher`s; Turbine for flows.
+- **Unit:** crypto (round-trip, tamper, nonce uniqueness), KeystoreManager (instrumented — Keystore has no JVM fake worth trusting), PinAttemptTracker (backoff schedule), PinKdf (determinism/divergence), repository (in-memory Room), session holder, serialization schemas. `runTest` + injected `TestDispatcher`s; Turbine for flows.
 - **Compose UI tests:** stateless screens with constructed states — lock screen (wrong PIN → error, backoff), card form (validation), list (empty/data/error). Semantics-based queries; no DI in tests.
 - **E2E (instrumented):** the one critical journey (Phase 6), on a physical device — Keystore + biometric behaviour is not faithfully emulated.
 - Security-critical code (crypto, keystore, repository) targets exhaustive coverage; UI targets critical flows.
@@ -302,7 +302,9 @@ Per `kotlin-rules.md` §14, `compose-rules.md` §13, and `testing-rules.md` (rea
 | 6 | VMK as non-exportable Keystore key | Random bytes in encrypted prefs (RN plan's design) | Hardware-backed and never present in app memory; biometric/credential gating enforced by the OS at key-use time, not by app logic. Cost: key is device-bound — which is exactly why Phase 5 export exists |
 | 7 | Hilt for DI | Koin, manual DI | Compose rules' examples assume it; compile-time validation; solo-dev-friendly given the small graph |
 | 8 | minSdk 33 | minSdk 26 + glass fallback UI | The glass is the product's visual identity; shipping a degraded fork doubles UI test surface for a shrinking device cohort. Conscious reach trade-off, stated on the listing |
-| 9 | PBKDF2 for PIN verifier + export KDF | Argon2 via libsodium | Platform-native (`SecretKeyFactory`), no new deps; PIN only gates the Keystore path (never derives the vault key), so KDF strength is not the primary defence. Argon2 is the documented upgrade path for the export passphrase if needed |
+| 9 | PBKDF2 (600k) for the PIN wrap KEK + export KDF | Argon2 via libsodium | Platform-native (`SecretKeyFactory`), no new deps. Since the PIN wrap's outer layer is a device-bound Keystore key, PIN guessing cannot run off-device, so PBKDF2 cost is a secondary defence, not the primary one. Argon2 is the documented upgrade path for the export passphrase (which has no device-bound outer layer) if needed |
+| 10 | Material 3 (CMP), **not** Material 3 Expressive | AndroidX Compose + M3 Expressive | Expressive is an AndroidX-only surface not mirrored in the JetBrains CMP artifacts the glass library depends on; switching stacks risks the glass integration for features (spring motion, shape morphs, expressive nav/FAB) we already own via the glass + our tokens. Material 3 is scaffolding; expressive character is hand-crafted (owner decision 2026-07-18) |
+| 11 | Dual-wrap DEK: hardware wrap + PIN wrap | Single Keystore-gated key with device-credential fallback (the "PIN never derives a key" design) | Reverses the original plan on owner decision: a real app-PIN unlock path can't be honestly built on the Keystore alone (correct app-PIN still needs a second OS credential prompt — two PINs), so the PIN gets its own wrap. Residual weakness is on-device PIN guessing bounded by app backoff (accepted); gains are a true PIN fallback and self-recovery when the hardware wrap is invalidated |
 
 ---
 
