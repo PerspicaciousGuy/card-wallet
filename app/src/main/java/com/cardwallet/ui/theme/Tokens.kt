@@ -7,6 +7,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.cardwallet.domain.CardColorToken
 
 /** 4/8-based spacing scale (compose-rules.md §9). No magic paddings in features. */
 @Immutable
@@ -18,24 +19,9 @@ data class Spacing(
     val xl: Dp = 32.dp,
 )
 
-/**
- * The color a user assigns to a card (F4.11). Stored as this stable token key on
- * the card record — never a raw hex — so the palette can change in one place.
- * Order is CVD-validated; treat it as fixed.
- */
-enum class CardColorToken {
-    BLUE,
-    GREEN,
-    ROSE,
-    AMBER,
-    AQUA,
-    ORANGE,
-    VIOLET,
-    RED,
-}
-
-/** Resolves a [CardColorToken] to its tile color. Theme-independent for now
- *  (vivid tiles read on both grounds); becomes theme-aware here if needed. */
+/** Resolves a domain [CardColorToken] to its tile color. Theme-independent for
+ *  now (vivid tiles read on both grounds); becomes theme-aware here if needed.
+ *  The palette order is CVD-validated; treat it as fixed. */
 fun CardColorToken.color(): Color =
     when (this) {
         CardColorToken.BLUE -> CardBlue

@@ -14,7 +14,9 @@ complexity:
     # Composable screen functions legitimately run long; flag only extremes.
     threshold: 120
   LongParameterList:
-    ignoreAnnotated: ["Composable"]
+    # @Inject constructors enumerate dependencies; a parameter object would
+    # only relocate the list and fight Hilt's constructor injection.
+    ignoreAnnotated: ["Composable", "Inject"]
   TooManyFunctions:
     # ViewModels are event-handler surfaces by design (compose-rules §5):
     # one public function per UI event is the pattern, not a smell.
