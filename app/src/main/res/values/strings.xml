@@ -5,7 +5,43 @@
     <string name="tab_settings">Settings</string>
 
     <string name="cards_title">Your cards</string>
-    <string name="cards_placeholder">Your encrypted vault will appear here. Card list arrives in Phase 3.</string>
+    <string name="search_cards">Search your cards</string>
+    <string name="filter_all">All</string>
+    <string name="empty_vault_title">Nothing here yet</string>
+    <string name="empty_vault_body">Tap the + button below to add your first card.</string>
+    <string name="no_matching_cards">No cards match your search.</string>
+    <string name="unreadable_card">This card can\'t be read. It may be corrupted.</string>
+    <string name="favorite_marker">♥</string>
+
+    <string name="card_type_payment">Payment</string>
+    <string name="card_type_identity">Identity</string>
+    <string name="card_type_travel">Travel</string>
+    <string name="card_type_loyalty">Loyalty</string>
+    <string name="card_type_other">Other</string>
+
+    <string name="add_card">Add card</string>
+    <string name="edit_card_title">Edit card</string>
+    <string name="card_title_label">Card name</string>
+    <string name="error_title_required">Give this card a name.</string>
+    <string name="error_fields_required">Fill in at least one field.</string>
+    <string name="card_color">Card color: %1$s</string>
+    <string name="mark_favorite">Show first in your list</string>
+    <string name="field_label">Label</string>
+    <string name="field_value">Value</string>
+    <string name="field_masked">Hidden until tapped</string>
+    <string name="add_field">Add a field</string>
+    <string name="remove_field">Remove</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="back">Back</string>
+    <string name="edit">Edit</string>
+    <string name="show">Show</string>
+    <string name="hide">Hide</string>
+    <string name="copy">Copy</string>
+    <string name="delete_card">Delete this card</string>
+    <string name="delete_card_title">Delete card?</string>
+    <string name="delete_card_body">“%1$s” will be permanently removed from your vault. This can\'t be undone.</string>
+    <string name="delete_confirm">Delete</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_placeholder">Auto-lock, PIN and backup controls arrive in Phases 4–5.</string>

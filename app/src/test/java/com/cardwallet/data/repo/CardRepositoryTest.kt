@@ -92,7 +92,10 @@ class CardRepositoryTest {
             val created = repo.create(paymentCard())
             advanceUntilIdle()
 
-            val entry = repo.entries.value.single() as VaultEntry.Readable
+            val entry =
+                repo.entries.value
+                    .orEmpty()
+                    .single() as VaultEntry.Readable
             assertEquals(created, entry.card)
             assertEquals(
                 "4111 1111 1111 1111",
@@ -154,11 +157,18 @@ class CardRepositoryTest {
 
             session.lock()
             advanceUntilIdle()
-            assertTrue(repo.entries.value.isEmpty())
+            assertNull(repo.entries.value)
 
             session.unlock(ByteArray(DEK_SIZE) { (it + 1).toByte() })
             advanceUntilIdle()
-            assertEquals(created, (repo.entries.value.single() as VaultEntry.Readable).card)
+            assertEquals(
+                created,
+                (
+                    repo.entries.value
+                        .orEmpty()
+                        .single() as VaultEntry.Readable
+                ).card,
+            )
         }
 
     @Test
@@ -176,7 +186,7 @@ class CardRepositoryTest {
             repo.refresh()
             advanceUntilIdle()
 
-            val entries = repo.entries.value
+            val entries = repo.entries.value.orEmpty()
             assertTrue(entries.contains(VaultEntry.Unreadable(victim.id)))
             assertTrue(entries.contains(VaultEntry.Readable(healthy)))
         }
@@ -195,7 +205,11 @@ class CardRepositoryTest {
             repo.refresh()
             advanceUntilIdle()
 
-            assertTrue(repo.entries.value.contains(VaultEntry.Unreadable(b.id)))
+            assertTrue(
+                repo.entries.value
+                    .orEmpty()
+                    .contains(VaultEntry.Unreadable(b.id)),
+            )
         }
 
     @Test

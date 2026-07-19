@@ -34,6 +34,13 @@ fun CardColorToken.color(): Color =
         CardColorToken.RED -> CardRed
     }
 
+/** Readable content color on each card tile — dark ink on the light accents. */
+fun CardColorToken.onColor(): Color =
+    when (this) {
+        CardColorToken.ROSE, CardColorToken.AMBER, CardColorToken.AQUA -> Ink
+        else -> Color.White
+    }
+
 /**
  * Wallet-specific design tokens beyond Material's roles (AGENTS.md §6).
  * Provided via [LocalWalletTokens]; read through [WalletTheme.tokens].

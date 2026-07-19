@@ -61,16 +61,17 @@ class CardRepository
         @param:Named("io") private val io: CoroutineDispatcher,
         @param:Named("app") appScope: CoroutineScope,
     ) {
-        private val _entries = MutableStateFlow<List<VaultEntry>>(emptyList())
+        private val _entries = MutableStateFlow<List<VaultEntry>?>(null)
 
-        /** Decrypted session cache; empty whenever the vault is locked. */
-        val entries: StateFlow<List<VaultEntry>> = _entries.asStateFlow()
+        /** Decrypted session cache. Null = locked or not yet loaded (an honest
+         *  Loading state for the UI); empty list = a genuinely empty vault. */
+        val entries: StateFlow<List<VaultEntry>?> = _entries.asStateFlow()
 
         init {
             appScope.launch {
                 session.state.collect { state ->
                     when (state) {
-                        SessionState.Locked -> _entries.value = emptyList()
+                        SessionState.Locked -> _entries.value = null
                         SessionState.Unlocked -> refresh()
                     }
                 }
@@ -85,6 +86,7 @@ class CardRepository
 
         fun get(id: String): Card? =
             _entries.value
+                .orEmpty()
                 .filterIsInstance<VaultEntry.Readable>()
                 .firstOrNull { it.card.id == id }
                 ?.card
@@ -120,7 +122,7 @@ class CardRepository
             withContext(io) {
                 requireKey()
                 dao.deleteById(id)
-                _entries.value = _entries.value.filterNot { it.idOrNull() == id }
+                _entries.value = _entries.value.orEmpty().filterNot { it.idOrNull() == id }
             }
 
         private suspend fun persist(card: Card) {
@@ -137,7 +139,8 @@ class CardRepository
                 ),
             )
             _entries.value =
-                _entries.value.filterNot { it.idOrNull() == card.id } + VaultEntry.Readable(card)
+                _entries.value.orEmpty().filterNot { it.idOrNull() == card.id } +
+                VaultEntry.Readable(card)
         }
 
         private fun decode(

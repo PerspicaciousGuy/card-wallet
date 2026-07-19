@@ -1,7 +1,3 @@
-// This file holds ALL routes; card detail/form join in Phase 3, when the
-// filename will match plurality again.
-@file:Suppress("MatchingDeclarationName", "ktlint:standard:filename")
-
 package com.cardwallet.navigation
 
 import kotlinx.serialization.Serializable
@@ -13,3 +9,14 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data object HomeRoute
+
+@Serializable
+data class CardDetailRoute(
+    val cardId: String,
+)
+
+/** cardId == null means "add a new card". */
+@Serializable
+data class CardFormRoute(
+    val cardId: String? = null,
+)
