@@ -104,6 +104,11 @@ the real-refraction rendering, and the navbar component in `ui/glass/` is adapte
 the catalog app in that repository (Apache-2.0, see [NOTICE](NOTICE)). If you want
 this effect in your own app, start there.
 
+**Want to build this navbar yourself?** We wrote a detailed, from-scratch
+walkthrough of the whole implementation — the backdrop capture model, the
+three-layer accent-reveal trick, the drag physics, and every pitfall we hit:
+[docs/liquid-glass-navbar.md](docs/liquid-glass-navbar.md).
+
 ## License
 
 [Apache License 2.0](LICENSE) — see [NOTICE](NOTICE) for third-party attributions.
