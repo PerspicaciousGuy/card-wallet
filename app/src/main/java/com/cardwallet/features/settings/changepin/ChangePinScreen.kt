@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -25,7 +24,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cardwallet.R
 import com.cardwallet.ui.components.PinDots
 import com.cardwallet.ui.components.PinPad
+import com.cardwallet.ui.glass.LiquidButton
 import com.cardwallet.ui.theme.WalletTheme
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 private val MESSAGE_SLOT_HEIGHT = 40.dp
 
@@ -58,16 +60,27 @@ fun ChangePinContent(
     modifier: Modifier = Modifier,
 ) {
     val spacing = WalletTheme.tokens.spacing
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val backdrop =
+        rememberLayerBackdrop {
+            drawRect(backgroundColor)
+            drawContent()
+        }
     Column(
         modifier
             .fillMaxSize()
+            .layerBackdrop(backdrop)
             .statusBarsPadding()
             .padding(spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(Modifier.fillMaxWidth()) {
-            TextButton(onClick = onClose, modifier = Modifier.align(Alignment.CenterStart)) {
-                Text(stringResource(R.string.cancel))
+            LiquidButton(
+                onClick = onClose,
+                backdrop = backdrop,
+                modifier = Modifier.align(Alignment.CenterStart),
+            ) {
+                Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.onSurface)
             }
         }
         Spacer(Modifier.weight(1f))

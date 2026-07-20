@@ -11,11 +11,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,7 +33,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cardwallet.R
 import com.cardwallet.ui.components.PinDots
 import com.cardwallet.ui.components.PinPad
+import com.cardwallet.ui.glass.LiquidButton
 import com.cardwallet.ui.theme.WalletTheme
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch
 
 private val MESSAGE_SLOT_HEIGHT = 48.dp
@@ -132,9 +133,17 @@ fun LockScreenContent(
     modifier: Modifier = Modifier,
 ) {
     val spacing = WalletTheme.tokens.spacing
+    val backgroundColor = MaterialTheme.colorScheme.background
+    // Safe to capture: this screen shows a dot COUNT, never PIN digits.
+    val backdrop =
+        rememberLayerBackdrop {
+            drawRect(backgroundColor)
+            drawContent()
+        }
     Column(
         modifier
             .fillMaxSize()
+            .layerBackdrop(backdrop)
             .padding(spacing.lg),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
@@ -146,11 +155,22 @@ fun LockScreenContent(
                 Title(stringResource(R.string.lock_secure_missing_title))
                 Body(stringResource(R.string.lock_secure_missing_body))
                 Spacer(Modifier.height(spacing.lg))
-                Button(onClick = onOpenSecuritySettings) {
-                    Text(stringResource(R.string.lock_open_settings))
+                LiquidButton(
+                    onClick = onOpenSecuritySettings,
+                    backdrop = backdrop,
+                    tint = MaterialTheme.colorScheme.primary,
+                ) {
+                    Text(
+                        stringResource(R.string.lock_open_settings),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
                 }
-                TextButton(onClick = onRecheckSecureLock) {
-                    Text(stringResource(R.string.lock_recheck))
+                Spacer(Modifier.height(spacing.sm))
+                LiquidButton(onClick = onRecheckSecureLock, backdrop = backdrop) {
+                    Text(
+                        stringResource(R.string.lock_recheck),
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
                 }
             }
 
@@ -174,8 +194,15 @@ fun LockScreenContent(
                 Body(stringResource(R.string.lock_seal_prompt_subtitle))
                 MessageText(state.message)
                 Spacer(Modifier.height(spacing.lg))
-                Button(onClick = onRetryCreateAuth) {
-                    Text(stringResource(R.string.lock_retry_auth))
+                LiquidButton(
+                    onClick = onRetryCreateAuth,
+                    backdrop = backdrop,
+                    tint = MaterialTheme.colorScheme.primary,
+                ) {
+                    Text(
+                        stringResource(R.string.lock_retry_auth),
+                        color = MaterialTheme.colorScheme.onPrimary,
+                    )
                 }
             }
 
@@ -201,8 +228,11 @@ fun LockScreenContent(
                 // Fixed-height slot: the pad must not jump when the button appears.
                 MessageSlot {
                     if (state.isBiometricEnabled) {
-                        TextButton(onClick = onRetryBiometric) {
-                            Text(stringResource(R.string.lock_use_biometric))
+                        LiquidButton(onClick = onRetryBiometric, backdrop = backdrop) {
+                            Text(
+                                stringResource(R.string.lock_use_biometric),
+                                color = MaterialTheme.colorScheme.primary,
+                            )
                         }
                     }
                 }

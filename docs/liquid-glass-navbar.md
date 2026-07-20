@@ -1,10 +1,10 @@
-# Building a Liquid-Glass Bottom Navbar in Jetpack Compose
+# Building Liquid-Glass UI in Jetpack Compose
 
-This is a complete walkthrough of how Card Wallet's floating glass navbar works —
-real refraction and dispersion, a draggable selection pill with squash-and-stretch,
-an accent color that appears *through* the glass, and a detached glass action
-button. It is written so that someone who has never touched the underlying library
-can rebuild the whole thing.
+This is a complete walkthrough of how Card Wallet's liquid-glass UI works — a
+floating navbar with real refraction and dispersion, a draggable selection pill
+with squash-and-stretch, an accent color that appears *through* the glass, plus
+glass **buttons** and a glass **toggle**. It is written so that someone who has
+never touched the underlying library can rebuild the whole thing.
 
 The effect is built on [**AndroidLiquidGlass**](https://github.com/Kyant0/AndroidLiquidGlass)
 by [Kyant](https://github.com/Kyant0) (Apache-2.0) — the `backdrop` library does the
@@ -274,6 +274,95 @@ holds only tabs gains a third or fourth tab by just adding slots. A center actio
 would permanently split the bar 2+2 and force pill-geometry surgery. The detached
 button also needs zero changes to the vendored pill math.
 
+## 7b. Glass buttons
+
+`ui/glass/LiquidButton.kt` is a faithful port of the catalog's `LiquidButton`,
+and it is where most of the "feels alive" comes from. Three behaviours stack:
+
+```kotlin
+layerBlock = {
+    val progress = interactiveHighlight.pressProgress
+    val scale = lerp(1f, 1f + 4.dp.toPx() / height, progress)   // 1. press lift
+
+    // 2. finger-follow, bounded by tanh so it leans but never runs away
+    val maxOffset = size.minDimension
+    val offset = interactiveHighlight.offset
+    translationX = maxOffset * tanh(0.05f * offset.x / maxOffset)
+    translationY = maxOffset * tanh(0.05f * offset.y / maxOffset)
+
+    // 3. directional stretch along the drag axis
+    val offsetAngle = atan2(offset.y, offset.x)
+    scaleX = scale + maxDragScale * abs(cos(offsetAngle) * offset.x / size.maxDimension) * ...
+    scaleY = scale + maxDragScale * abs(sin(offsetAngle) * offset.y / size.maxDimension) * ...
+}
+```
+
+The `tanh` is the elegant bit: raw translation would let the button slide away
+under a long drag, while `tanh` asymptotically approaches a limit — so it leans
+toward your finger and stops, exactly like something held by a spring.
+
+**Tint here is the opposite call from the navbar pill.** A button *should* read
+as a solid accent object, so the strong recipe is right:
+
+```kotlin
+onDrawSurface = {
+    if (tint.isSpecified) {
+        drawRect(tint, blendMode = BlendMode.Hue)   // hue-adapt the backdrop
+        drawRect(tint.copy(alpha = 0.75f))          // then commit to the color
+    }
+}
+```
+
+Compare §5: on the *pill* that same recipe destroyed the effect, because a
+selection indicator must reveal rather than paint. Same library, opposite
+choice, driven by what the component means.
+
+Our `GlassIconButton` (the navbar's **+**) is now just a wrapper over
+`LiquidButton` with `height = null` so the navbar row owns its size — it
+inherits all the physics for free.
+
+## 7c. The glass toggle
+
+`ui/glass/LiquidToggle.kt` ports the catalog's toggle, with the accent mapped to
+our honey token. It is the most intricate component in the app:
+
+- **The thumb's backdrop is combined**: `rememberCombinedBackdrop(page, scaledTrack)`,
+  where the track copy is squeezed via `rememberBackdrop(trackBackdrop) { scale(...) }`.
+  So the track's color physically bends through the thumb.
+- **Blur and lens are inverted by press**: `blur(8.dp * (1f - progress))` and
+  `lens(5.dp * progress, ...)`. At rest it's a soft frosted pill; pressed, the
+  blur falls away and refraction blooms.
+- **It's draggable, not just tappable.** `DampedDragAnimation` (the same class
+  driving the navbar pill) tracks a 0..1 fraction; `didDrag` distinguishes a
+  slide (settle to the nearest side) from a tap (flip the value).
+- Velocity squash-and-stretch, ambient highlight, shadow and inner shadow all
+  scale with press progress.
+
+Replaced both Material `Switch`es (biometric unlock, field masking).
+
+## 7d. Security: where glass may and may not go
+
+Rule (plan §3.4): **a backdrop keeps a live GPU copy of whatever it wraps**, so
+revealed secrets must never be inside one. That is a structural constraint, not
+a style preference, and it shaped the card-detail screen:
+
+```kotlin
+// CardDetailScreen — the capture is attached ONLY to the header banner
+val headerBackdrop = rememberLayerBackdrop { drawRect(bannerColor); drawContent() }
+
+HeaderBanner(card, headerBackdrop)   // title, type, accent — no secrets
+// …field rows with revealed values live OUTSIDE the captured layer…
+```
+
+The Back / Edit / Delete buttons refract the *banner*, so the screen gets glass
+without any revealed card value ever entering a GPU capture. The lock screen is
+safe to capture wholesale for a similar reason: it renders a dot **count**,
+never the PIN digits.
+
+When adding glass to a new screen, ask first: *what does this backdrop capture?*
+If the answer includes a secret, scope the capture down instead of skipping the
+rule.
+
 ## 8. Wiring it into an app
 
 Our `features/home/HomeScreen.kt` puts it together:
@@ -317,7 +406,9 @@ samples those pixels.
 | `ui/glass/DampedDragAnimation.kt` | Spring position + press progress + velocity squash/stretch |
 | `ui/glass/InteractiveHighlight.kt` | Touch-tracking specular glow (AGSL) |
 | `ui/glass/DragGestureInspector.kt` | Press-immediate drag detector |
-| `ui/glass/GlassIconButton.kt` | Detached tinted-glass action button (ours) |
+| `ui/glass/LiquidButton.kt` | Glass button: press lift, tanh finger-follow, directional stretch |
+| `ui/glass/LiquidToggle.kt` | Draggable glass switch over a combined track backdrop |
+| `ui/glass/GlassIconButton.kt` | The navbar's **+** — a thin `LiquidButton` wrapper |
 | `features/home/HomeScreen.kt` | Backdrop creation + bar/button row wiring |
 
 Licensing: the four adapted files and the two libraries are Apache-2.0 from the

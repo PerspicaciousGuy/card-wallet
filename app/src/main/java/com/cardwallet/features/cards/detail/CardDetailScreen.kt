@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -31,15 +30,23 @@ import com.cardwallet.R
 import com.cardwallet.domain.Card
 import com.cardwallet.domain.CardField
 import com.cardwallet.features.cards.list.components.labelRes
+import com.cardwallet.ui.glass.LiquidButton
 import com.cardwallet.ui.theme.WalletTheme
 import com.cardwallet.ui.theme.color
 import com.cardwallet.ui.theme.onColor
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 private const val MASK = "••••••••"
 
 /**
- * Card detail (F4.5–F4.7). Deliberately renders NO glass: revealed secrets must
- * never sit under a backdrop capture (plan §3 rule 4).
+ * Card detail (F4.5–F4.7).
+ *
+ * SECURITY (plan §3 rule 4): a backdrop keeps a live GPU copy of whatever it
+ * wraps, so revealed card values must never be inside one. Here the capture is
+ * attached ONLY to the header banner (title, type, accent — no secrets); the
+ * field list sits outside it. The buttons therefore refract the banner, and the
+ * rule is enforced by structure rather than by discipline.
  */
 @Composable
 fun CardDetailScreen(
@@ -135,6 +142,13 @@ private fun LoadedBody(
 ) {
     val spacing = WalletTheme.tokens.spacing
     val card = state.card
+    val bannerColor = card.color.color()
+    // Captures the banner ONLY — never the field rows (see the class doc).
+    val headerBackdrop =
+        rememberLayerBackdrop {
+            drawRect(bannerColor)
+            drawContent()
+        }
 
     Column(
         Modifier
@@ -145,11 +159,15 @@ private fun LoadedBody(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            TextButton(onClick = onClose) { Text(stringResource(R.string.back)) }
-            TextButton(onClick = { onEdit(card.id) }) { Text(stringResource(R.string.edit)) }
+            LiquidButton(onClick = onClose, backdrop = headerBackdrop) {
+                Text(stringResource(R.string.back), color = MaterialTheme.colorScheme.onSurface)
+            }
+            LiquidButton(onClick = { onEdit(card.id) }, backdrop = headerBackdrop) {
+                Text(stringResource(R.string.edit), color = MaterialTheme.colorScheme.onSurface)
+            }
         }
 
-        HeaderBanner(card)
+        HeaderBanner(card, headerBackdrop)
 
         Column(
             Modifier.padding(top = spacing.md),
@@ -165,8 +183,10 @@ private fun LoadedBody(
             }
         }
 
-        OutlinedButton(
+        LiquidButton(
             onClick = onRequestDelete,
+            backdrop = headerBackdrop,
+            tint = MaterialTheme.colorScheme.error,
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -174,20 +194,24 @@ private fun LoadedBody(
         ) {
             Text(
                 stringResource(R.string.delete_card),
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.onError,
             )
         }
     }
 }
 
 @Composable
-private fun HeaderBanner(card: Card) {
+private fun HeaderBanner(
+    card: Card,
+    backdrop: com.kyant.backdrop.backdrops.LayerBackdrop,
+) {
     val spacing = WalletTheme.tokens.spacing
     val accent = card.color.color()
     val content = card.color.onColor()
     Column(
         Modifier
             .fillMaxWidth()
+            .layerBackdrop(backdrop)
             .background(accent, RoundedCornerShape(spacing.lg))
             .padding(spacing.lg),
         verticalArrangement = Arrangement.spacedBy(spacing.xs),

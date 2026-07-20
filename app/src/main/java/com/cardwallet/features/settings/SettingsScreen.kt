@@ -14,7 +14,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,7 +37,10 @@ import com.cardwallet.features.lock.authenticateWithBiometrics
 import com.cardwallet.features.settings.components.SettingRow
 import com.cardwallet.features.settings.components.SettingsSection
 import com.cardwallet.features.settings.components.SingleChoiceRow
+import com.cardwallet.ui.glass.LiquidToggle
 import com.cardwallet.ui.theme.WalletTheme
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch
 
 @Composable
@@ -94,9 +96,16 @@ fun SettingsContent(
     modifier: Modifier = Modifier,
 ) {
     val spacing = WalletTheme.tokens.spacing
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val backdrop =
+        rememberLayerBackdrop {
+            drawRect(backgroundColor)
+            drawContent()
+        }
     Column(
         modifier
             .fillMaxSize()
+            .layerBackdrop(backdrop)
             .verticalScroll(rememberScrollState())
             .statusBarsPadding()
             .padding(horizontal = spacing.md),
@@ -123,7 +132,13 @@ fun SettingsContent(
             SettingRow(
                 title = stringResource(R.string.settings_biometric),
                 trailing = {
-                    Switch(checked = state.isBiometricEnabled, onCheckedChange = onBiometricToggle)
+                    LiquidToggle(
+                        selected = { state.isBiometricEnabled },
+                        onSelect = onBiometricToggle,
+                        backdrop = backdrop,
+                        accentColor = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    )
                 },
             )
             SettingRow(

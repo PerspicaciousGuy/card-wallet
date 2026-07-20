@@ -23,9 +23,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,8 +42,13 @@ import com.cardwallet.R
 import com.cardwallet.domain.CardColorToken
 import com.cardwallet.domain.CardType
 import com.cardwallet.features.cards.list.components.labelRes
+import com.cardwallet.ui.glass.LiquidButton
+import com.cardwallet.ui.glass.LiquidToggle
 import com.cardwallet.ui.theme.WalletTheme
 import com.cardwallet.ui.theme.color
+import com.kyant.backdrop.Backdrop
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 
 private val COLOR_DOT_SIZE = 40.dp
 private val COLOR_RING_WIDTH = 3.dp
@@ -96,9 +99,16 @@ fun CardFormContent(
     modifier: Modifier = Modifier,
 ) {
     val spacing = WalletTheme.tokens.spacing
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val backdrop =
+        rememberLayerBackdrop {
+            drawRect(backgroundColor)
+            drawContent()
+        }
     Column(
         modifier
             .fillMaxSize()
+            .layerBackdrop(backdrop)
             .statusBarsPadding()
             .navigationBarsPadding()
             .imePadding()
@@ -111,6 +121,7 @@ fun CardFormContent(
                 }
             is CardFormUiState.Editing ->
                 EditingBody(
+                    backdrop = backdrop,
                     state = state,
                     onTypeSelect = onTypeSelect,
                     onTitleChange = onTitleChange,
@@ -130,6 +141,7 @@ fun CardFormContent(
 
 @Composable
 private fun EditingBody(
+    backdrop: Backdrop,
     state: CardFormUiState.Editing,
     onTypeSelect: (CardType) -> Unit,
     onTitleChange: (String) -> Unit,
@@ -149,9 +161,16 @@ private fun EditingBody(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            TextButton(onClick = onClose) { Text(stringResource(R.string.cancel)) }
-            TextButton(onClick = onSave, enabled = !state.isSaving) {
-                Text(stringResource(R.string.save))
+            LiquidButton(onClick = onClose, backdrop = backdrop) {
+                Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.onSurface)
+            }
+            LiquidButton(
+                onClick = onSave,
+                backdrop = backdrop,
+                isEnabled = !state.isSaving,
+                tint = MaterialTheme.colorScheme.primary,
+            ) {
+                Text(stringResource(R.string.save), color = MaterialTheme.colorScheme.onPrimary)
             }
         }
 
@@ -211,7 +230,13 @@ private fun EditingBody(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onBackground,
             )
-            Switch(checked = state.isFavorite, onCheckedChange = { onFavoriteToggle() })
+            LiquidToggle(
+                selected = { state.isFavorite },
+                onSelect = { onFavoriteToggle() },
+                backdrop = backdrop,
+                accentColor = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
         }
 
         if (state.hasFieldsError) {
@@ -225,6 +250,7 @@ private fun EditingBody(
 
         state.fields.forEachIndexed { index, field ->
             FieldEditor(
+                backdrop = backdrop,
                 field = field,
                 onLabelChange = { onFieldLabelChange(index, it) },
                 onValueChange = { onFieldValueChange(index, it) },
@@ -234,14 +260,18 @@ private fun EditingBody(
             )
         }
 
-        OutlinedButton(
+        LiquidButton(
             onClick = onAddField,
+            backdrop = backdrop,
             modifier =
                 Modifier
                     .fillMaxWidth()
                     .padding(vertical = spacing.lg),
         ) {
-            Text(stringResource(R.string.add_field))
+            Text(
+                stringResource(R.string.add_field),
+                color = MaterialTheme.colorScheme.onSurface,
+            )
         }
     }
 }
@@ -284,6 +314,7 @@ private fun ColorPicker(
 
 @Composable
 private fun FieldEditor(
+    backdrop: Backdrop,
     field: FieldDraft,
     onLabelChange: (String) -> Unit,
     onValueChange: (String) -> Unit,
@@ -318,7 +349,13 @@ private fun FieldEditor(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Switch(checked = field.isMasked, onCheckedChange = { onMaskToggle() })
+                LiquidToggle(
+                    selected = { field.isMasked },
+                    onSelect = { onMaskToggle() },
+                    backdrop = backdrop,
+                    accentColor = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                )
                 Text(
                     text = stringResource(R.string.field_masked),
                     style = MaterialTheme.typography.labelSmall,
