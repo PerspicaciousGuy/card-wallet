@@ -72,6 +72,30 @@
     <string name="settings_privacy">Privacy</string>
     <string name="settings_privacy_note">All your data stays on this device. We collect nothing.</string>
 
+    <string name="warning_luhn">This does not look like a valid card number. You can still save it.</string>
+
+    <string name="settings_about">About Card Wallet</string>
+    <string name="settings_about_note">Version, source code, and licences.</string>
+
+    <string name="settings_clipboard">Clear clipboard after</string>
+    <string name="clipboard_never">Never</string>
+    <string name="clipboard_15s">15 sec</string>
+    <string name="clipboard_30s">30 sec</string>
+    <string name="clipboard_1m">1 min</string>
+
+    <string name="about_tagline">An offline, encrypted wallet for the cards you carry.</string>
+    <string name="about_section_project">Project</string>
+    <string name="about_source">Source code</string>
+    <string name="about_source_note">github.com/PerspicaciousGuy/card-wallet</string>
+    <string name="about_license">Licence</string>
+    <string name="about_license_note">MIT — free to use, study, and modify.</string>
+    <string name="about_section_privacy">Privacy</string>
+    <string name="about_privacy_detail">Card Wallet has no servers, no analytics, and no network permission for your data. Everything is encrypted with keys held in this device\'s hardware keystore and never leaves it.</string>
+    <string name="about_section_credits">Credits</string>
+    <string name="about_kyant">Liquid glass by Kyant</string>
+    <string name="about_kyant_note">The glass components are based on Kyant0/AndroidLiquidGlass, used under the Apache 2.0 licence.</string>
+    <string name="about_footer">Built in the open. If something here looks wrong, please open an issue — security reports especially welcome.</string>
+
     <string name="settings_erase">Erase vault</string>
     <string name="settings_erase_note">Permanently delete every card and key.</string>
     <string name="settings_erase_title">Erase everything?</string>

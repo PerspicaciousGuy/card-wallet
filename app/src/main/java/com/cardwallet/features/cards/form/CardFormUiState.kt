@@ -1,7 +1,9 @@
 package com.cardwallet.features.cards.form
 
 import com.cardwallet.domain.CardColorToken
+import com.cardwallet.domain.CardField
 import com.cardwallet.domain.CardType
+import com.cardwallet.domain.shouldWarnLuhn
 
 /** One editable field row; labels are as editable as values (F4.10). */
 data class FieldDraft(
@@ -26,5 +28,19 @@ sealed interface CardFormUiState {
         val hasFieldsError: Boolean = false,
         val isSaving: Boolean = false,
         val isSaved: Boolean = false,
-    ) : CardFormUiState
+    ) : CardFormUiState {
+        /**
+         * Indices of card-number fields that fail the Luhn checksum. Derived
+         * rather than stored so it can never disagree with [fields]; a warning
+         * only, so it is not consulted when saving.
+         */
+        val luhnWarningIndices: Set<Int>
+            get() =
+                fields
+                    .withIndex()
+                    .filter { (_, draft) ->
+                        shouldWarnLuhn(type, CardField(draft.label, draft.value, draft.isMasked))
+                    }.map { it.index }
+                    .toSet()
+    }
 }

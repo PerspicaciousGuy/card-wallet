@@ -33,6 +33,24 @@ enum class AutoLockTimeout(
     FIVE_MINUTES(FIVE_MINUTES_MILLIS),
 }
 
+private const val FIFTEEN_SECONDS_MILLIS = 15_000L
+
+/**
+ * How long a copied secret may sit in the system clipboard.
+ *
+ * [NEVER] leaves the copy in place: some people rely on normal clipboard
+ * behaviour, and silently wiping it would look like a bug. Copies are still
+ * flagged sensitive and are still cleared when the vault locks.
+ */
+enum class ClipboardTimeout(
+    val millis: Long,
+) {
+    NEVER(NO_DELAY_MILLIS),
+    FIFTEEN_SECONDS(FIFTEEN_SECONDS_MILLIS),
+    THIRTY_SECONDS(THIRTY_SECONDS_MILLIS),
+    ONE_MINUTE(ONE_MINUTE_MILLIS),
+}
+
 /**
  * Non-sensitive preferences ONLY (plan §3 rule 1) — its own DataStore file,
  * fully separate from the vault metadata.
@@ -57,6 +75,13 @@ class SettingsStore
                 } ?: ThemeMode.SYSTEM
             }
 
+        val clipboardTimeout: Flow<ClipboardTimeout> =
+            dataStore.data.map { prefs ->
+                prefs[CLIPBOARD]?.let { stored ->
+                    ClipboardTimeout.entries.firstOrNull { it.name == stored }
+                } ?: ClipboardTimeout.THIRTY_SECONDS
+            }
+
         suspend fun setAutoLockTimeout(value: AutoLockTimeout) {
             dataStore.edit { it[AUTO_LOCK] = value.millis }
         }
@@ -65,8 +90,16 @@ class SettingsStore
             dataStore.edit { it[THEME] = value.name }
         }
 
+        suspend fun setClipboardTimeout(value: ClipboardTimeout) {
+            dataStore.edit { it[CLIPBOARD] = value.name }
+        }
+
         private companion object {
             val AUTO_LOCK = longPreferencesKey("auto_lock_millis")
             val THEME = stringPreferencesKey("theme_mode")
+
+            // Stored by NAME, unlike AUTO_LOCK: NEVER and IMMEDIATELY would
+            // both be 0ms, so a millis lookup could not tell them apart.
+            val CLIPBOARD = stringPreferencesKey("clipboard_timeout")
         }
     }

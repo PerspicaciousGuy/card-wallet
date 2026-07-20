@@ -52,6 +52,7 @@ fun HomeScreen(
     onOpenCard: (String) -> Unit,
     onAddCard: () -> Unit,
     onChangePin: () -> Unit,
+    onOpenAbout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(WalletTab.CARDS.index) }
@@ -73,7 +74,11 @@ fun HomeScreen(
         ) {
             when (WalletTab.entries[selectedTab]) {
                 WalletTab.CARDS -> CardListScreen(onOpenCard = onOpenCard)
-                WalletTab.SETTINGS -> SettingsScreen(onChangePin = onChangePin)
+                WalletTab.SETTINGS ->
+                    SettingsScreen(
+                        onChangePin = onChangePin,
+                        onOpenAbout = onOpenAbout,
+                    )
             }
         }
 

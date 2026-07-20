@@ -1,6 +1,8 @@
 package com.cardwallet
 
 import android.app.Application
+import com.cardwallet.data.clipboard.SensitiveClipboard
+import com.cardwallet.data.session.SessionState
 import com.cardwallet.data.session.SessionStateHolder
 import com.cardwallet.data.settings.SettingsStore
 import dagger.hilt.android.HiltAndroidApp
@@ -18,6 +20,9 @@ class CardWalletApp : Application() {
     lateinit var session: SessionStateHolder
 
     @Inject
+    lateinit var clipboard: SensitiveClipboard
+
+    @Inject
     @Named("app")
     lateinit var appScope: CoroutineScope
 
@@ -28,6 +33,16 @@ class CardWalletApp : Application() {
         appScope.launch {
             settings.autoLockTimeout.collect { timeout ->
                 session.autoLockTimeoutMillis = timeout.millis
+            }
+        }
+        appScope.launch {
+            settings.clipboardTimeout.collect { clipboard.timeout = it }
+        }
+        // Locking must not leave a copied secret behind, however long the
+        // user's clipboard timeout is — including NEVER.
+        appScope.launch {
+            session.state.collect { state ->
+                if (state == SessionState.Locked) clipboard.clearNow()
             }
         }
     }

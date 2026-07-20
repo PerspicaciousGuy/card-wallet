@@ -23,3 +23,6 @@ data class CardFormRoute(
 
 @Serializable
 data object ChangePinRoute
+
+@Serializable
+data object AboutRoute

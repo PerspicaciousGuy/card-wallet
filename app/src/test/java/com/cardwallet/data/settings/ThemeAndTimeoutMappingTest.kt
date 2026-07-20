@@ -26,7 +26,29 @@ class ThemeAndTimeoutMappingTest {
         }
     }
 
+    @Test
+    fun `clipboard names map back to their enum`() {
+        ClipboardTimeout.entries.forEach { timeout ->
+            assertEquals(timeout, ClipboardTimeout.entries.first { it.name == timeout.name })
+        }
+    }
+
+    @Test
+    fun `clipboard millis are NOT unique so the store must key on name`() {
+        // NEVER and a zero delay collide; this is why SettingsStore persists
+        // ClipboardTimeout by name while AutoLockTimeout persists by millis.
+        assertEquals(0L, ClipboardTimeout.NEVER.millis)
+        val byMillis = ClipboardTimeout.entries.count { it.millis == 0L }
+        assertEquals(1, byMillis)
+    }
+
+    @Test
+    fun `default clipboard timeout is thirty seconds`() {
+        assertEquals(THIRTY_SECONDS_MILLIS, ClipboardTimeout.THIRTY_SECONDS.millis)
+    }
+
     private companion object {
         const val ONE_MINUTE_MILLIS = 60_000L
+        const val THIRTY_SECONDS_MILLIS = 30_000L
     }
 }

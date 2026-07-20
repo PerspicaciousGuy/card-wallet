@@ -8,6 +8,7 @@ import com.cardwallet.data.repo.CardRepository
 import com.cardwallet.data.security.RootDetector
 import com.cardwallet.data.session.SessionStateHolder
 import com.cardwallet.data.settings.AutoLockTimeout
+import com.cardwallet.data.settings.ClipboardTimeout
 import com.cardwallet.data.settings.SettingsStore
 import com.cardwallet.data.settings.ThemeMode
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -39,17 +40,25 @@ class SettingsViewModel
         private val erased = MutableStateFlow(false)
         private val rooted = rootDetector.isLikelyRooted()
 
-        val state: StateFlow<SettingsUiState> =
+        private val preferences =
             combine(
                 settings.autoLockTimeout,
                 settings.themeMode,
+                settings.clipboardTimeout,
+                ::StoredPreferences,
+            )
+
+        val state: StateFlow<SettingsUiState> =
+            combine(
+                preferences,
                 biometricEnabled,
                 confirmingErase,
                 erased,
-            ) { autoLock, theme, biometric, confirming, isErased ->
+            ) { prefs, biometric, confirming, isErased ->
                 SettingsUiState(
-                    autoLockTimeout = autoLock,
-                    themeMode = theme,
+                    autoLockTimeout = prefs.autoLockTimeout,
+                    themeMode = prefs.themeMode,
+                    clipboardTimeout = prefs.clipboardTimeout,
                     isBiometricEnabled = biometric,
                     isDeviceRooted = rooted,
                     appVersion = appVersion,
@@ -72,6 +81,10 @@ class SettingsViewModel
 
         fun onThemeChange(value: ThemeMode) {
             viewModelScope.launch { settings.setThemeMode(value) }
+        }
+
+        fun onClipboardTimeoutChange(value: ClipboardTimeout) {
+            viewModelScope.launch { settings.setClipboardTimeout(value) }
         }
 
         /** Screen provides the freshly authorized VMK cipher (F6.3 enable). */

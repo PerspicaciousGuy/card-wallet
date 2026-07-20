@@ -23,12 +23,17 @@ class CardDetailViewModelTest {
 
     private class RecordingClipboard : SecretClipboard {
         val copies = mutableListOf<Pair<String, String>>()
+        var clearCount = 0
 
         override fun copy(
             label: String,
             value: String,
         ) {
             copies += label to value
+        }
+
+        override fun clearNow() {
+            clearCount++
         }
     }
 
