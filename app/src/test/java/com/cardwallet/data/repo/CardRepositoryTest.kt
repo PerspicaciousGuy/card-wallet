@@ -36,6 +36,10 @@ private class FakeCardDao : CardDao {
     override suspend fun deleteById(id: String) {
         rows.remove(id)
     }
+
+    override suspend fun deleteAll() {
+        rows.clear()
+    }
 }
 
 private class FakeClock(

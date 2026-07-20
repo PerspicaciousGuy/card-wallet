@@ -33,6 +33,12 @@ class SessionStateHolder
         private var dek: ByteArray? = null
         private var backgroundedAtMillis: Long? = null
 
+        /** F6.1: written by the settings observer in CardWalletApp; 0 = lock
+         *  on any backgrounding. Volatile — written from a collector coroutine,
+         *  read on the main thread's lifecycle callbacks. */
+        @Volatile
+        var autoLockTimeoutMillis: Long = DEFAULT_AUTO_LOCK_TIMEOUT_MILLIS
+
         fun unlock(dekBytes: ByteArray) {
             dek = dekBytes
             _state.value = SessionState.Unlocked
@@ -57,13 +63,12 @@ class SessionStateHolder
         fun onAppForegrounded() {
             val since = backgroundedAtMillis ?: return
             backgroundedAtMillis = null
-            if (time.nowMillis() - since >= AUTO_LOCK_TIMEOUT_MILLIS) {
+            if (time.nowMillis() - since >= autoLockTimeoutMillis) {
                 lock()
             }
         }
 
         companion object {
-            /** Phase 1 default; becomes a Settings value in Phase 4 (F6.1). */
-            const val AUTO_LOCK_TIMEOUT_MILLIS = 60_000L
+            const val DEFAULT_AUTO_LOCK_TIMEOUT_MILLIS = 60_000L
         }
     }

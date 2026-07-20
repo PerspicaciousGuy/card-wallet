@@ -51,6 +51,7 @@ private val ADD_ICON_SIZE = 22.dp
 fun HomeScreen(
     onOpenCard: (String) -> Unit,
     onAddCard: () -> Unit,
+    onChangePin: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var selectedTab by rememberSaveable { mutableIntStateOf(WalletTab.CARDS.index) }
@@ -72,7 +73,7 @@ fun HomeScreen(
         ) {
             when (WalletTab.entries[selectedTab]) {
                 WalletTab.CARDS -> CardListScreen(onOpenCard = onOpenCard)
-                WalletTab.SETTINGS -> SettingsScreen()
+                WalletTab.SETTINGS -> SettingsScreen(onChangePin = onChangePin)
             }
         }
 

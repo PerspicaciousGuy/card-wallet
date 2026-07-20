@@ -123,8 +123,46 @@ class VaultKeyManager
                 metaStore.clearHardwareWrap()
             }
 
-        // Re-enabling biometrics after invalidation (re-sealing Wrap A) arrives
-        // with the Settings toggle in Phase 4 — deliberately absent until then.
+        /**
+         * F6.3 (enable path) and F2.5 recovery: re-seal Wrap A around the
+         * session DEK with a freshly authorized VMK cipher.
+         */
+        suspend fun enableBiometric(
+            dek: ByteArray,
+            authorizedVmkCipher: Cipher,
+        ) = withContext(io) {
+            val ciphertext = authorizedVmkCipher.doFinal(dek)
+            metaStore.saveHardwareWrap(
+                HardwareWrap(nonce = authorizedVmkCipher.iv, ciphertext = ciphertext),
+            )
+        }
+
+        /**
+         * F6.4: verify the current PIN (full Wrap B open — the wrap IS the
+         * verifier), then re-seal Wrap B with the new PIN. Backoff applies to
+         * the verify exactly like an unlock attempt.
+         */
+        suspend fun changePin(
+            currentPin: CharArray,
+            newPin: CharArray,
+        ): PinUnlockResult =
+            withContext(io) {
+                val result = unlockWithPin(currentPin)
+                if (result is PinUnlockResult.Success) {
+                    sealPinWrap(result.dek, newPin)
+                    result.dek.fill(0)
+                }
+                result
+            }
+
+        /** F6.9: destroys every key and wrap. The vault ciphertext without
+         *  these is permanently unrecoverable — callers wipe the DB too. */
+        suspend fun eraseKeys() =
+            withContext(io) {
+                keystore.deleteAll()
+                metaStore.eraseAll()
+                attempts.recordSuccess()
+            }
 
         private suspend fun sealPinWrap(
             dek: ByteArray,

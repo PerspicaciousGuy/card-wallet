@@ -25,6 +25,10 @@ private val Context.vaultMetaDataStore: DataStore<Preferences> by preferencesDat
     name = "vault_meta",
 )
 
+private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(
+    name = "settings",
+)
+
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
@@ -35,7 +39,18 @@ object AppModule {
     ): DataStore<Preferences> = context.vaultMetaDataStore
 
     @Provides
+    @Singleton
+    @Named("settings")
+    fun provideSettingsDataStore(
+        @ApplicationContext context: Context,
+    ): DataStore<Preferences> = context.settingsDataStore
+
+    @Provides
     fun provideTimeSource(): TimeSource = TimeSource { System.currentTimeMillis() }
+
+    @Provides
+    @Named("appVersion")
+    fun provideAppVersion(): String = com.cardwallet.BuildConfig.VERSION_NAME
 
     @Provides
     @Named("io")

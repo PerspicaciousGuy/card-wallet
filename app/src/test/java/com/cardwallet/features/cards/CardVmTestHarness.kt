@@ -32,6 +32,10 @@ class CardVmTestHarness {
         override suspend fun deleteById(id: String) {
             rows.remove(id)
         }
+
+        override suspend fun deleteAll() {
+            rows.clear()
+        }
     }
 
     class FakeClock(

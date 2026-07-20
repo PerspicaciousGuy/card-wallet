@@ -1,4 +1,4 @@
-package com.cardwallet.features.lock.components
+package com.cardwallet.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable

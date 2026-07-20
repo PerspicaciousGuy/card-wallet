@@ -125,6 +125,14 @@ class CardRepository
                 _entries.value = _entries.value.orEmpty().filterNot { it.idOrNull() == id }
             }
 
+        /** F6.9: wipes every row and the cache. Intentionally works while the
+         *  key state is being torn down — erasure must not require a key. */
+        suspend fun eraseAll() =
+            withContext(io) {
+                dao.deleteAll()
+                _entries.value = null
+            }
+
         private suspend fun persist(card: Card) {
             val key = requireKey()
             val sealed = cipher.encrypt(key, json.encodeToString(Card.serializer(), card).encodeToByteArray())

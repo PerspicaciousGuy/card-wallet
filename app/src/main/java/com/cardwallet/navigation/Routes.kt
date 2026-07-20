@@ -20,3 +20,6 @@ data class CardDetailRoute(
 data class CardFormRoute(
     val cardId: String? = null,
 )
+
+@Serializable
+data object ChangePinRoute

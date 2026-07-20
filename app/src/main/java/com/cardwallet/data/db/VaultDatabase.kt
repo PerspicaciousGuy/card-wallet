@@ -17,6 +17,9 @@ interface CardDao {
 
     @Query("DELETE FROM cards WHERE id = :id")
     suspend fun deleteById(id: String)
+
+    @Query("DELETE FROM cards")
+    suspend fun deleteAll()
 }
 
 /**

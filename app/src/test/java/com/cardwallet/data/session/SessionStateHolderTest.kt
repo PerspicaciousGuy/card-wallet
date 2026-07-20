@@ -50,7 +50,7 @@ class SessionStateHolderTest {
     fun `background shorter than the timeout keeps the session unlocked`() {
         session.unlock(testDek())
         session.onAppBackgrounded()
-        clock.now += SessionStateHolder.AUTO_LOCK_TIMEOUT_MILLIS - 1
+        clock.now += SessionStateHolder.DEFAULT_AUTO_LOCK_TIMEOUT_MILLIS - 1
         session.onAppForegrounded()
         assertEquals(SessionState.Unlocked, session.state.value)
     }
@@ -59,7 +59,7 @@ class SessionStateHolderTest {
     fun `background beyond the timeout locks on return`() {
         session.unlock(testDek())
         session.onAppBackgrounded()
-        clock.now += SessionStateHolder.AUTO_LOCK_TIMEOUT_MILLIS
+        clock.now += SessionStateHolder.DEFAULT_AUTO_LOCK_TIMEOUT_MILLIS
         session.onAppForegrounded()
         assertEquals(SessionState.Locked, session.state.value)
         assertNull(session.dekOrNull())
@@ -68,6 +68,25 @@ class SessionStateHolderTest {
     @Test
     fun `foreground without a prior background is a no-op`() {
         session.unlock(testDek())
+        session.onAppForegrounded()
+        assertEquals(SessionState.Unlocked, session.state.value)
+    }
+
+    @Test
+    fun `a zero timeout locks on any backgrounding (Immediately)`() {
+        session.autoLockTimeoutMillis = 0L
+        session.unlock(testDek())
+        session.onAppBackgrounded()
+        session.onAppForegrounded()
+        assertEquals(SessionState.Locked, session.state.value)
+    }
+
+    @Test
+    fun `a longer timeout keeps the session through a shorter absence`() {
+        session.autoLockTimeoutMillis = SessionStateHolder.DEFAULT_AUTO_LOCK_TIMEOUT_MILLIS
+        session.unlock(testDek())
+        session.onAppBackgrounded()
+        clock.now += SessionStateHolder.DEFAULT_AUTO_LOCK_TIMEOUT_MILLIS - 1
         session.onAppForegrounded()
         assertEquals(SessionState.Unlocked, session.state.value)
     }

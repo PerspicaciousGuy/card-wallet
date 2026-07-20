@@ -33,8 +33,8 @@ import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cardwallet.R
-import com.cardwallet.features.lock.components.PinDots
-import com.cardwallet.features.lock.components.PinPad
+import com.cardwallet.ui.components.PinDots
+import com.cardwallet.ui.components.PinPad
 import com.cardwallet.ui.theme.WalletTheme
 import kotlinx.coroutines.launch
 

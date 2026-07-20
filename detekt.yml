@@ -19,8 +19,10 @@ complexity:
     ignoreAnnotated: ["Composable", "Inject"]
   TooManyFunctions:
     # ViewModels are event-handler surfaces by design (compose-rules §5):
-    # one public function per UI event is the pattern, not a smell.
-    ignoreAnnotated: ["HiltViewModel"]
+    # one public function per UI event is the pattern, not a smell. The same
+    # applies to the vault/repository facades: each function is one distinct
+    # operation on a single responsibility, so splitting would scatter it.
+    ignoreAnnotated: ["HiltViewModel", "Singleton"]
 
 naming:
   FunctionNaming:

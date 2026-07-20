@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import com.cardwallet.features.cards.detail.CardDetailScreen
 import com.cardwallet.features.cards.form.CardFormScreen
 import com.cardwallet.features.home.HomeScreen
+import com.cardwallet.features.settings.changepin.ChangePinScreen
 
 /**
  * Graph for the UNLOCKED app only — MainActivity renders it exclusively while
@@ -25,6 +26,7 @@ fun AppNavGraph() {
             HomeScreen(
                 onOpenCard = { id -> navController.navigate(CardDetailRoute(id)) },
                 onAddCard = { navController.navigate(CardFormRoute()) },
+                onChangePin = { navController.navigate(ChangePinRoute) },
             )
         }
         composable<CardDetailRoute> {
@@ -35,6 +37,12 @@ fun AppNavGraph() {
         }
         composable<CardFormRoute> {
             CardFormScreen(
+                onClose = { navController.popBackStack() },
+            )
+        }
+        composable<ChangePinRoute> {
+            ChangePinScreen(
+                onDone = { navController.popBackStack() },
                 onClose = { navController.popBackStack() },
             )
         }
