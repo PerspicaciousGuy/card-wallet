@@ -31,6 +31,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -100,41 +101,47 @@ fun CardFormContent(
 ) {
     val spacing = WalletTheme.tokens.spacing
     val backgroundColor = MaterialTheme.colorScheme.background
-    val backdrop =
-        rememberLayerBackdrop {
-            drawRect(backgroundColor)
-            drawContent()
-        }
-    Column(
-        modifier
-            .fillMaxSize()
-            .layerBackdrop(backdrop)
-            .statusBarsPadding()
-            .navigationBarsPadding()
-            .imePadding()
-            .padding(horizontal = spacing.md),
-    ) {
-        when (state) {
-            CardFormUiState.Loading ->
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            is CardFormUiState.Editing ->
-                EditingBody(
-                    backdrop = backdrop,
-                    state = state,
-                    onTypeSelect = onTypeSelect,
-                    onTitleChange = onTitleChange,
-                    onFieldLabelChange = onFieldLabelChange,
-                    onFieldValueChange = onFieldValueChange,
-                    onFieldMaskToggle = onFieldMaskToggle,
-                    onAddField = onAddField,
-                    onRemoveField = onRemoveField,
-                    onColorSelect = onColorSelect,
-                    onFavoriteToggle = onFavoriteToggle,
-                    onSave = onSave,
-                    onClose = onClose,
-                )
+    // Sibling capture, not ancestor capture — see SettingsContent for why.
+    val backdrop = rememberLayerBackdrop()
+
+    Box(modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .matchParentSize()
+                .layerBackdrop(backdrop)
+                .background(backgroundColor),
+        )
+
+        Column(
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .imePadding()
+                .padding(horizontal = spacing.md),
+        ) {
+            when (state) {
+                CardFormUiState.Loading ->
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                is CardFormUiState.Editing ->
+                    EditingBody(
+                        backdrop = backdrop,
+                        state = state,
+                        onTypeSelect = onTypeSelect,
+                        onTitleChange = onTitleChange,
+                        onFieldLabelChange = onFieldLabelChange,
+                        onFieldValueChange = onFieldValueChange,
+                        onFieldMaskToggle = onFieldMaskToggle,
+                        onAddField = onAddField,
+                        onRemoveField = onRemoveField,
+                        onColorSelect = onColorSelect,
+                        onFavoriteToggle = onFavoriteToggle,
+                        onSave = onSave,
+                        onClose = onClose,
+                    )
+            }
         }
     }
 }
@@ -248,10 +255,12 @@ private fun EditingBody(
             )
         }
 
+        val luhnWarnings = state.luhnWarningIndices
         state.fields.forEachIndexed { index, field ->
             FieldEditor(
                 backdrop = backdrop,
                 field = field,
+                hasLuhnWarning = index in luhnWarnings,
                 onLabelChange = { onFieldLabelChange(index, it) },
                 onValueChange = { onFieldValueChange(index, it) },
                 onMaskToggle = { onFieldMaskToggle(index) },
@@ -305,6 +314,8 @@ private fun ColorPicker(
                         },
                     ).padding(COLOR_RING_WIDTH + 2.dp)
                     .background(token.color(), CircleShape)
+                    // Clip BEFORE clickable, or the ripple draws as a square.
+                    .clip(CircleShape)
                     .clickable(role = Role.Button) { onSelect(token) }
                     .semantics { contentDescription = description },
             )
@@ -316,6 +327,7 @@ private fun ColorPicker(
 private fun FieldEditor(
     backdrop: Backdrop,
     field: FieldDraft,
+    hasLuhnWarning: Boolean,
     onLabelChange: (String) -> Unit,
     onValueChange: (String) -> Unit,
     onMaskToggle: () -> Unit,
@@ -343,6 +355,15 @@ private fun FieldEditor(
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
         )
+        if (hasLuhnWarning) {
+            // Advisory only — deliberately NOT `isError`, and saving is allowed.
+            Text(
+                text = stringResource(R.string.warning_luhn),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.tertiary,
+                modifier = Modifier.padding(start = spacing.md, top = spacing.xs),
+            )
+        }
         Row(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,

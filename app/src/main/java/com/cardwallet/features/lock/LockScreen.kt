@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -134,105 +135,113 @@ fun LockScreenContent(
 ) {
     val spacing = WalletTheme.tokens.spacing
     val backgroundColor = MaterialTheme.colorScheme.background
-    // Safe to capture: this screen shows a dot COUNT, never PIN digits.
-    val backdrop =
-        rememberLayerBackdrop {
-            drawRect(backgroundColor)
-            drawContent()
-        }
-    Column(
-        modifier
-            .fillMaxSize()
-            .layerBackdrop(backdrop)
-            .padding(spacing.lg),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        when (state) {
-            LockUiState.Loading, LockUiState.Unlocking -> CircularProgressIndicator()
+    // Sibling capture, not ancestor capture — see SettingsContent for why.
+    // (Capturing content would also be safe here privacy-wise: this screen
+    // shows a dot COUNT, never PIN digits. The cycle is the reason, not privacy.)
+    val backdrop = rememberLayerBackdrop()
 
-            LockUiState.SecureLockMissing -> {
-                Title(stringResource(R.string.lock_secure_missing_title))
-                Body(stringResource(R.string.lock_secure_missing_body))
-                Spacer(Modifier.height(spacing.lg))
-                LiquidButton(
-                    onClick = onOpenSecuritySettings,
-                    backdrop = backdrop,
-                    tint = MaterialTheme.colorScheme.primary,
-                ) {
-                    Text(
-                        stringResource(R.string.lock_open_settings),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                }
-                Spacer(Modifier.height(spacing.sm))
-                LiquidButton(onClick = onRecheckSecureLock, backdrop = backdrop) {
-                    Text(
-                        stringResource(R.string.lock_recheck),
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            }
+    Box(modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .matchParentSize()
+                .layerBackdrop(backdrop)
+                .background(backgroundColor),
+        )
 
-            is LockUiState.CreatePin -> {
-                val title =
-                    when (state.stage) {
-                        CreateStage.ENTER -> stringResource(R.string.lock_create_title)
-                        CreateStage.CONFIRM -> stringResource(R.string.lock_confirm_title)
-                    }
-                Title(title)
-                Body(stringResource(R.string.lock_create_subtitle))
-                Spacer(Modifier.height(spacing.lg))
-                PinDots(filled = state.enteredDigits)
-                MessageSlot { MessageText(state.message) }
-                Spacer(Modifier.height(spacing.lg))
-                PinPad(onDigit = onDigit, onBackspace = onBackspace)
-            }
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(spacing.lg),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+        ) {
+            when (state) {
+                LockUiState.Loading, LockUiState.Unlocking -> CircularProgressIndicator()
 
-            is LockUiState.AwaitCreateAuth -> {
-                Title(stringResource(R.string.lock_seal_prompt_title))
-                Body(stringResource(R.string.lock_seal_prompt_subtitle))
-                MessageText(state.message)
-                Spacer(Modifier.height(spacing.lg))
-                LiquidButton(
-                    onClick = onRetryCreateAuth,
-                    backdrop = backdrop,
-                    tint = MaterialTheme.colorScheme.primary,
-                ) {
-                    Text(
-                        stringResource(R.string.lock_retry_auth),
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                }
-            }
-
-            is LockUiState.Locked -> {
-                Title(stringResource(R.string.lock_title))
-                Spacer(Modifier.height(spacing.lg))
-                PinDots(filled = state.enteredDigits)
-                MessageSlot {
-                    if (state.backoffRemainingSeconds > 0) {
-                        Body(
-                            stringResource(R.string.lock_backoff, state.backoffRemainingSeconds),
+                LockUiState.SecureLockMissing -> {
+                    Title(stringResource(R.string.lock_secure_missing_title))
+                    Body(stringResource(R.string.lock_secure_missing_body))
+                    Spacer(Modifier.height(spacing.lg))
+                    LiquidButton(
+                        onClick = onOpenSecuritySettings,
+                        backdrop = backdrop,
+                        tint = MaterialTheme.colorScheme.primary,
+                    ) {
+                        Text(
+                            stringResource(R.string.lock_open_settings),
+                            color = MaterialTheme.colorScheme.onPrimary,
                         )
-                    } else {
-                        MessageText(state.message)
+                    }
+                    Spacer(Modifier.height(spacing.sm))
+                    LiquidButton(onClick = onRecheckSecureLock, backdrop = backdrop) {
+                        Text(
+                            stringResource(R.string.lock_recheck),
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
                     }
                 }
-                Spacer(Modifier.height(spacing.lg))
-                PinPad(
-                    onDigit = onDigit,
-                    onBackspace = onBackspace,
-                    isEnabled = state.backoffRemainingSeconds == 0,
-                )
-                // Fixed-height slot: the pad must not jump when the button appears.
-                MessageSlot {
-                    if (state.isBiometricEnabled) {
-                        LiquidButton(onClick = onRetryBiometric, backdrop = backdrop) {
-                            Text(
-                                stringResource(R.string.lock_use_biometric),
-                                color = MaterialTheme.colorScheme.primary,
+
+                is LockUiState.CreatePin -> {
+                    val title =
+                        when (state.stage) {
+                            CreateStage.ENTER -> stringResource(R.string.lock_create_title)
+                            CreateStage.CONFIRM -> stringResource(R.string.lock_confirm_title)
+                        }
+                    Title(title)
+                    Body(stringResource(R.string.lock_create_subtitle))
+                    Spacer(Modifier.height(spacing.lg))
+                    PinDots(filled = state.enteredDigits)
+                    MessageSlot { MessageText(state.message) }
+                    Spacer(Modifier.height(spacing.lg))
+                    PinPad(onDigit = onDigit, onBackspace = onBackspace, backdrop = backdrop)
+                }
+
+                is LockUiState.AwaitCreateAuth -> {
+                    Title(stringResource(R.string.lock_seal_prompt_title))
+                    Body(stringResource(R.string.lock_seal_prompt_subtitle))
+                    MessageText(state.message)
+                    Spacer(Modifier.height(spacing.lg))
+                    LiquidButton(
+                        onClick = onRetryCreateAuth,
+                        backdrop = backdrop,
+                        tint = MaterialTheme.colorScheme.primary,
+                    ) {
+                        Text(
+                            stringResource(R.string.lock_retry_auth),
+                            color = MaterialTheme.colorScheme.onPrimary,
+                        )
+                    }
+                }
+
+                is LockUiState.Locked -> {
+                    Title(stringResource(R.string.lock_title))
+                    Spacer(Modifier.height(spacing.lg))
+                    PinDots(filled = state.enteredDigits)
+                    MessageSlot {
+                        if (state.backoffRemainingSeconds > 0) {
+                            Body(
+                                stringResource(R.string.lock_backoff, state.backoffRemainingSeconds),
                             )
+                        } else {
+                            MessageText(state.message)
+                        }
+                    }
+                    Spacer(Modifier.height(spacing.lg))
+                    PinPad(
+                        onDigit = onDigit,
+                        onBackspace = onBackspace,
+                        backdrop = backdrop,
+                        isEnabled = state.backoffRemainingSeconds == 0,
+                    )
+                    // Fixed-height slot: the pad must not jump when the button appears.
+                    MessageSlot {
+                        if (state.isBiometricEnabled) {
+                            LiquidButton(onClick = onRetryBiometric, backdrop = backdrop) {
+                                Text(
+                                    stringResource(R.string.lock_use_biometric),
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
                         }
                     }
                 }

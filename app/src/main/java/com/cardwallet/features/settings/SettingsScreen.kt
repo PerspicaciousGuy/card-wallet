@@ -2,10 +2,14 @@ package com.cardwallet.features.settings
 
 import android.content.ContextWrapper
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -26,11 +30,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cardwallet.R
 import com.cardwallet.data.settings.AutoLockTimeout
+import com.cardwallet.data.settings.ClipboardTimeout
 import com.cardwallet.data.settings.ThemeMode
 import com.cardwallet.features.lock.BiometricOutcome
 import com.cardwallet.features.lock.authenticateWithBiometrics
@@ -43,9 +49,13 @@ import com.kyant.backdrop.backdrops.layerBackdrop
 import com.kyant.backdrop.backdrops.rememberLayerBackdrop
 import kotlinx.coroutines.launch
 
+/** Floating navbar (64dp) plus its vertical padding (8dp). */
+private val NAVBAR_CLEARANCE = 80.dp
+
 @Composable
 fun SettingsScreen(
     onChangePin: () -> Unit,
+    onOpenAbout: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -75,7 +85,9 @@ fun SettingsScreen(
                 }
             }
         },
+        onClipboardTimeoutChange = viewModel::onClipboardTimeoutChange,
         onChangePin = onChangePin,
+        onOpenAbout = onOpenAbout,
         onEraseRequest = viewModel::onEraseRequest,
         onEraseDismiss = viewModel::onEraseDismiss,
         onEraseConfirmed = viewModel::onEraseConfirmed,
@@ -89,7 +101,9 @@ fun SettingsContent(
     onAutoLockChange: (AutoLockTimeout) -> Unit,
     onThemeChange: (ThemeMode) -> Unit,
     onBiometricToggle: (Boolean) -> Unit,
+    onClipboardTimeoutChange: (ClipboardTimeout) -> Unit,
     onChangePin: () -> Unit,
+    onOpenAbout: () -> Unit,
     onEraseRequest: () -> Unit,
     onEraseDismiss: () -> Unit,
     onEraseConfirmed: () -> Unit,
@@ -97,87 +111,111 @@ fun SettingsContent(
 ) {
     val spacing = WalletTheme.tokens.spacing
     val backgroundColor = MaterialTheme.colorScheme.background
-    val backdrop =
-        rememberLayerBackdrop {
-            drawRect(backgroundColor)
-            drawContent()
-        }
-    Column(
-        modifier
-            .fillMaxSize()
-            .layerBackdrop(backdrop)
-            .verticalScroll(rememberScrollState())
-            .statusBarsPadding()
-            .padding(horizontal = spacing.md),
-    ) {
-        Text(
-            text = stringResource(R.string.settings_title),
-            style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier.padding(vertical = spacing.lg),
+    // The backdrop must capture a SIBLING of the glass, never an ancestor of it.
+    // Capturing the scrolling Column here would make the toggle sample a layer
+    // that contains the toggle — a RenderNode cycle that overflows the render
+    // thread stack (SIGSEGV in prepareTreeImpl). See docs §7d.
+    val backdrop = rememberLayerBackdrop()
+
+    Box(modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .matchParentSize()
+                .layerBackdrop(backdrop)
+                .background(backgroundColor),
         )
 
-        if (state.isDeviceRooted) {
-            RootWarning()
-        }
+        Column(
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .statusBarsPadding()
+                .padding(horizontal = spacing.md),
+        ) {
+            Text(
+                text = stringResource(R.string.settings_title),
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.padding(vertical = spacing.lg),
+            )
 
-        SettingsSection(stringResource(R.string.settings_section_security)) {
-            SingleChoiceRow(
-                title = stringResource(R.string.settings_auto_lock),
-                options = AutoLockTimeout.entries,
-                selected = state.autoLockTimeout,
-                optionLabel = { stringResource(it.labelRes()) },
-                onSelect = onAutoLockChange,
-            )
-            SettingRow(
-                title = stringResource(R.string.settings_biometric),
-                trailing = {
-                    LiquidToggle(
-                        selected = { state.isBiometricEnabled },
-                        onSelect = onBiometricToggle,
-                        backdrop = backdrop,
-                        accentColor = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
-                    )
-                },
-            )
-            SettingRow(
-                title = stringResource(R.string.settings_change_pin),
-                onClick = onChangePin,
-            )
-            SettingRow(
-                title = stringResource(R.string.settings_screenshot_protection),
-                subtitle = stringResource(R.string.settings_screenshot_protection_note),
-            )
-        }
+            if (state.isDeviceRooted) {
+                RootWarning()
+            }
 
-        SettingsSection(stringResource(R.string.settings_section_appearance)) {
-            SingleChoiceRow(
-                title = stringResource(R.string.settings_theme),
-                options = ThemeMode.entries,
-                selected = state.themeMode,
-                optionLabel = { stringResource(it.labelRes()) },
-                onSelect = onThemeChange,
-            )
-        }
+            SettingsSection(stringResource(R.string.settings_section_security)) {
+                SingleChoiceRow(
+                    title = stringResource(R.string.settings_auto_lock),
+                    options = AutoLockTimeout.entries,
+                    selected = state.autoLockTimeout,
+                    optionLabel = { stringResource(it.labelRes()) },
+                    onSelect = onAutoLockChange,
+                    backdrop = backdrop,
+                )
+                SettingRow(
+                    title = stringResource(R.string.settings_biometric),
+                    trailing = {
+                        LiquidToggle(
+                            selected = { state.isBiometricEnabled },
+                            onSelect = onBiometricToggle,
+                            backdrop = backdrop,
+                            accentColor = MaterialTheme.colorScheme.primary,
+                            trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                        )
+                    },
+                )
+                SettingRow(
+                    title = stringResource(R.string.settings_change_pin),
+                    onClick = onChangePin,
+                )
+                SingleChoiceRow(
+                    title = stringResource(R.string.settings_clipboard),
+                    options = ClipboardTimeout.entries,
+                    selected = state.clipboardTimeout,
+                    optionLabel = { stringResource(it.labelRes()) },
+                    onSelect = onClipboardTimeoutChange,
+                    backdrop = backdrop,
+                )
+                SettingRow(
+                    title = stringResource(R.string.settings_screenshot_protection),
+                    subtitle = stringResource(R.string.settings_screenshot_protection_note),
+                )
+            }
 
-        SettingsSection(stringResource(R.string.settings_section_about)) {
-            SettingRow(
-                title = stringResource(R.string.settings_version),
-                subtitle = state.appVersion,
-            )
-            SettingRow(
-                title = stringResource(R.string.settings_privacy),
-                subtitle = stringResource(R.string.settings_privacy_note),
-            )
-        }
+            SettingsSection(stringResource(R.string.settings_section_appearance)) {
+                SingleChoiceRow(
+                    title = stringResource(R.string.settings_theme),
+                    options = ThemeMode.entries,
+                    selected = state.themeMode,
+                    optionLabel = { stringResource(it.labelRes()) },
+                    onSelect = onThemeChange,
+                    backdrop = backdrop,
+                )
+            }
 
-        SettingsSection(stringResource(R.string.settings_section_danger)) {
-            SettingRow(
-                title = stringResource(R.string.settings_erase),
-                subtitle = stringResource(R.string.settings_erase_note),
-                titleColor = MaterialTheme.colorScheme.error,
-                onClick = onEraseRequest,
+            SettingsSection(stringResource(R.string.settings_section_about)) {
+                SettingRow(
+                    title = stringResource(R.string.settings_about),
+                    subtitle = stringResource(R.string.settings_about_note),
+                    onClick = onOpenAbout,
+                )
+            }
+
+            SettingsSection(stringResource(R.string.settings_section_danger)) {
+                SettingRow(
+                    title = stringResource(R.string.settings_erase),
+                    subtitle = stringResource(R.string.settings_erase_note),
+                    titleColor = MaterialTheme.colorScheme.error,
+                    onClick = onEraseRequest,
+                )
+            }
+
+            // Clearance so the last section scrolls clear of the floating navbar
+            // (64dp bar + 8dp padding) instead of being trapped behind it.
+            Spacer(
+                Modifier
+                    .navigationBarsPadding()
+                    .height(NAVBAR_CLEARANCE),
             )
         }
     }
@@ -256,6 +294,14 @@ private fun ThemeMode.labelRes() =
         ThemeMode.SYSTEM -> R.string.theme_system
         ThemeMode.LIGHT -> R.string.theme_light
         ThemeMode.DARK -> R.string.theme_dark
+    }
+
+private fun ClipboardTimeout.labelRes() =
+    when (this) {
+        ClipboardTimeout.NEVER -> R.string.clipboard_never
+        ClipboardTimeout.FIFTEEN_SECONDS -> R.string.clipboard_15s
+        ClipboardTimeout.THIRTY_SECONDS -> R.string.clipboard_30s
+        ClipboardTimeout.ONE_MINUTE -> R.string.clipboard_1m
     }
 
 private tailrec fun android.content.Context.findFragmentActivity(): FragmentActivity? =

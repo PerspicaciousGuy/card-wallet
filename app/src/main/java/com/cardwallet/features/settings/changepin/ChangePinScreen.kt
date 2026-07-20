@@ -1,5 +1,6 @@
 package com.cardwallet.features.settings.changepin
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -61,56 +62,62 @@ fun ChangePinContent(
 ) {
     val spacing = WalletTheme.tokens.spacing
     val backgroundColor = MaterialTheme.colorScheme.background
-    val backdrop =
-        rememberLayerBackdrop {
-            drawRect(backgroundColor)
-            drawContent()
-        }
-    Column(
-        modifier
-            .fillMaxSize()
-            .layerBackdrop(backdrop)
-            .statusBarsPadding()
-            .padding(spacing.lg),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(Modifier.fillMaxWidth()) {
-            LiquidButton(
-                onClick = onClose,
-                backdrop = backdrop,
-                modifier = Modifier.align(Alignment.CenterStart),
-            ) {
-                Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.onSurface)
-            }
-        }
-        Spacer(Modifier.weight(1f))
+    // Sibling capture, not ancestor capture — see SettingsContent for why.
+    val backdrop = rememberLayerBackdrop()
 
-        if (state.isWorking) {
-            CircularProgressIndicator()
-        } else {
-            Text(
-                text = stringResource(state.stage.titleRes()),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center,
-            )
-            Spacer(Modifier.height(spacing.lg))
-            PinDots(filled = state.enteredDigits)
-            Box(Modifier.height(MESSAGE_SLOT_HEIGHT), contentAlignment = Alignment.Center) {
-                state.message?.let {
-                    Text(
-                        text = stringResource(it.messageRes()),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                    )
+    Box(modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .matchParentSize()
+                .layerBackdrop(backdrop)
+                .background(backgroundColor),
+        )
+
+        Column(
+            Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .padding(spacing.lg),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(Modifier.fillMaxWidth()) {
+                LiquidButton(
+                    onClick = onClose,
+                    backdrop = backdrop,
+                    modifier = Modifier.align(Alignment.CenterStart),
+                ) {
+                    Text(stringResource(R.string.cancel), color = MaterialTheme.colorScheme.onSurface)
                 }
             }
-            Spacer(Modifier.height(spacing.md))
-            PinPad(onDigit = onDigit, onBackspace = onBackspace)
-        }
+            Spacer(Modifier.weight(1f))
 
-        Spacer(Modifier.weight(1f))
+            if (state.isWorking) {
+                CircularProgressIndicator()
+            } else {
+                Text(
+                    text = stringResource(state.stage.titleRes()),
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(Modifier.height(spacing.lg))
+                PinDots(filled = state.enteredDigits)
+                Box(Modifier.height(MESSAGE_SLOT_HEIGHT), contentAlignment = Alignment.Center) {
+                    state.message?.let {
+                        Text(
+                            text = stringResource(it.messageRes()),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(spacing.md))
+                PinPad(onDigit = onDigit, onBackspace = onBackspace, backdrop = backdrop)
+            }
+
+            Spacer(Modifier.weight(1f))
+        }
     }
 }
 

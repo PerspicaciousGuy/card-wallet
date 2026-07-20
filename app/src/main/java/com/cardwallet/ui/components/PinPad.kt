@@ -1,7 +1,6 @@
 package com.cardwallet.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,11 +13,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.cardwallet.R
+import com.cardwallet.ui.glass.LiquidButton
+import com.kyant.backdrop.Backdrop
 
 private val KEY_SIZE = 72.dp
 private val DOT_SIZE = 14.dp
@@ -57,6 +57,7 @@ fun PinDots(
 fun PinPad(
     onDigit: (Char) -> Unit,
     onBackspace: () -> Unit,
+    backdrop: Backdrop,
     modifier: Modifier = Modifier,
     isEnabled: Boolean = true,
 ) {
@@ -72,6 +73,7 @@ fun PinPad(
                     PinKey(
                         label = digit.toString(),
                         onClick = { onDigit(digit) },
+                        backdrop = backdrop,
                         isEnabled = isEnabled,
                     )
                 }
@@ -79,10 +81,16 @@ fun PinPad(
         }
         Row(horizontalArrangement = Arrangement.spacedBy(24.dp)) {
             Box(Modifier.size(KEY_SIZE))
-            PinKey(label = "0", onClick = { onDigit('0') }, isEnabled = isEnabled)
+            PinKey(
+                label = "0",
+                onClick = { onDigit('0') },
+                backdrop = backdrop,
+                isEnabled = isEnabled,
+            )
             PinKey(
                 label = "⌫",
                 onClick = onBackspace,
+                backdrop = backdrop,
                 isEnabled = isEnabled,
                 description = stringResource(R.string.lock_backspace),
             )
@@ -90,30 +98,41 @@ fun PinPad(
     }
 }
 
+/**
+ * A round glass key. [LiquidButton] owns the press feedback (lift + refraction),
+ * which is why no `indication` is set here — the default Material ripple would
+ * draw an unclipped rectangle behind the circle.
+ */
 @Composable
 private fun PinKey(
     label: String,
     onClick: () -> Unit,
+    backdrop: Backdrop,
     isEnabled: Boolean,
     description: String? = null,
 ) {
-    Box(
-        Modifier
-            .size(KEY_SIZE)
-            .background(MaterialTheme.colorScheme.surface, CircleShape)
-            .clickable(enabled = isEnabled, role = Role.Button, onClick = onClick)
-            .semantics { if (description != null) contentDescription = description },
-        contentAlignment = Alignment.Center,
+    LiquidButton(
+        onClick = onClick,
+        backdrop = backdrop,
+        isEnabled = isEnabled,
+        height = null,
+        contentPadding = 0.dp,
+        modifier =
+            Modifier
+                .size(KEY_SIZE)
+                .semantics { if (description != null) contentDescription = description },
     ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.headlineMedium,
-            color =
-                if (isEnabled) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
-        )
+        Box(Modifier.size(KEY_SIZE), contentAlignment = Alignment.Center) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.headlineMedium,
+                color =
+                    if (isEnabled) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+            )
+        }
     }
 }

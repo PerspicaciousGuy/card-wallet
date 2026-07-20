@@ -4,21 +4,27 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import com.cardwallet.ui.glass.LiquidButton
 import com.cardwallet.ui.theme.WalletTheme
+import com.kyant.backdrop.Backdrop
+
+private val CHIP_HEIGHT = 40.dp
 
 @Composable
 fun SettingsSection(
@@ -36,7 +42,10 @@ fun SettingsSection(
         Column(
             Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(spacing.md)),
+                .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(spacing.md))
+                // Clip so a row's press ripple stays inside the section's corners
+                // instead of painting a square over them.
+                .clip(RoundedCornerShape(spacing.md)),
         ) {
             content()
         }
@@ -77,7 +86,10 @@ fun SettingRow(
     }
 }
 
-/** A labeled row of single-choice chips — used for auto-lock and theme. */
+/**
+ * A labeled row of single-choice glass chips — used for auto-lock and theme.
+ * The selected chip is tinted with the accent; the rest are plain glass.
+ */
 @Composable
 fun <T> SingleChoiceRow(
     title: String,
@@ -85,6 +97,7 @@ fun <T> SingleChoiceRow(
     selected: T,
     optionLabel: @Composable (T) -> String,
     onSelect: (T) -> Unit,
+    backdrop: Backdrop,
     modifier: Modifier = Modifier,
 ) {
     val spacing = WalletTheme.tokens.spacing
@@ -95,13 +108,35 @@ fun <T> SingleChoiceRow(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.padding(bottom = spacing.xs),
         )
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(spacing.sm)) {
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(spacing.sm),
+            contentPadding = PaddingValues(vertical = spacing.xs),
+        ) {
             items(options) { option ->
-                FilterChip(
-                    selected = option == selected,
+                val isSelected = option == selected
+                LiquidButton(
                     onClick = { onSelect(option) },
-                    label = { Text(optionLabel(option)) },
-                )
+                    backdrop = backdrop,
+                    tint =
+                        if (isSelected) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            Color.Unspecified
+                        },
+                    height = CHIP_HEIGHT,
+                    contentPadding = spacing.md,
+                ) {
+                    Text(
+                        text = optionLabel(option),
+                        style = MaterialTheme.typography.labelLarge,
+                        color =
+                            if (isSelected) {
+                                MaterialTheme.colorScheme.onPrimary
+                            } else {
+                                MaterialTheme.colorScheme.onSurface
+                            },
+                    )
+                }
             }
         }
     }
